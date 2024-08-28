@@ -1,0 +1,44 @@
+<p><b>Personal Data Consent Form</b></p>
+
+<p><b>Company:</b> {{company}}</p>
+
+<p><b>Date: </b>{{consent_date}}</p>
+
+<p>I, {{user_fullname}}, hereby consent to the collection, processing, and use of my personal data by <b>{{company}}</b> in accordance with the terms outlined below:</p>
+
+<p><b>Purpose of Data Collection:</b></p>
+
+<p>The personal data collected will be used for the purpose of [Specify the purpose, e.g., providing services, processing transactions, customer support, etc.].</p>
+
+<p><b>Types of Personal Data:</b></p>
+
+<p>The types of personal data that may be collected include, but are not limited to, [List specific types of data, e.g., name, contact information, payment details, etc.].</p>
+
+<p><b>Data Processing:</b></p>
+
+<p><b>{{company}}</b> will process the personal data for the purpose stated above. This includes, but is not limited to, data storage, analysis, and sharing with third parties as necessary for the provision of services.<p>
+
+<p><b>Data Security:</b></p>
+
+<p><b>{{company}}</b> is committed to ensuring the security and confidentiality of the personal data collected. Appropriate measures will be taken to prevent unauthorized access, disclosure, alteration, or destruction of the data.</p>
+
+<p><b>Data Retention:</b></p>
+
+<p>The personal data will be retained for the duration necessary to fulfill the purpose for which it was collected, unless a longer retention period is required or permitted by law.</p>
+
+<p><b>Right to Access and Correct:</b></p>
+
+<p>I have the right to access my personal data held by <b>{{company}}</b> and to correct any inaccuracies. Requests for access or correction should be submitted in writing to <b>{{data_officer_email}}</b>.</p>
+
+<p><b>Withdrawal of Consent:</b></p>
+
+<p>I have the right to withdraw my consent at any time by notifying <b>{{company}}</b> in writing. Withdrawal of consent does not affect the lawfulness of processing based on consent before its withdrawal.</p>
+
+<p><b>Contact Information:</b></p>
+
+<p><b>Company:</b> {{company}}</p>
+<p><b>Address:</b> {{address}}</p>
+<p><b>Email:</b> {{email}}</p>
+<p><b>Phone</b> {{phone}}</p>
+
+<p><b>I have read and understood the terms of this consent form and voluntarily agree to the collection, processing, and use of my personal data as described herein.</b></p>
