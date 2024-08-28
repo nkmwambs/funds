@@ -130,6 +130,7 @@ class CI_Session_files_driver extends CI_Session_driver implements CI_Session_dr
 	 * @param	string	$name		Session cookie name
 	 * @return	bool
 	 */
+	#[\ReturnTypeWillChange]
 	public function open($save_path, $name)
 	{
 		if ( ! is_dir($save_path))
