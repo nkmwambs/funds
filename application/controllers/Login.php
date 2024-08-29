@@ -4,7 +4,7 @@ if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
     
-    require_once FCPATH.'vendor/autoload.php';
+    require_once '../../vendor/autoload.php';
     // require_once  __DIR__ . '/vendor/autoload.php';
 
 
