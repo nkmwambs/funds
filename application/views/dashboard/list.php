@@ -72,14 +72,11 @@ if (!$this->session->data_privacy_consented && isset($unique_identifier) && !emp
 
 <?php if ($this->session->system_admin) { ?>
 
-    <div class="row">
+    <!-- <div class="row">
         <div class="col-sm-3">
             <button id='update_project_ids' class='btn btn-danger'>Update Opening Fund Balance Project Ids</button>
         </div>
-        <!-- <div class="col-sm-3">
-            <button id='update_fund_balance_report' class='btn btn-danger'>Initialize Fund Balance Report</button>
-        </div> -->
-    </div>
+    </div> -->
 
 <?php } ?>
 
