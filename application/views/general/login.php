@@ -210,11 +210,11 @@
 
 				<!-- Create Account and Forgot Password -->
 				<div class="login-bottom-links">
-					<div>
+					<!-- <div>
 						<a href="<?php echo base_url(); ?>login/create_account" class="link" style="color:yellow;">
 							<?php echo get_phrase('create_account'); ?>
 						</a>
-					</div>
+					</div> -->
 
 					<div>
 						<a href="<?php echo base_url(); ?>login/forgot_password" class="link">
