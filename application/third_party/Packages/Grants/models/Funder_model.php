@@ -34,7 +34,7 @@ class Funder_model extends MY_Model
       return ['project','income_account'];
     }
 
-  
+
 
     public function master_table_visible_columns(){}
 
@@ -73,10 +73,12 @@ class Funder_model extends MY_Model
 
     public function view(){}
 
+    // public function detail_list_table_where(){
+    //   $this->read_db->where(array('fk_funder_id'=> hash_id($this->id, 'decode')));
+    // }
     public function list_table_where(){
 
       if(!$this->session->system_admin){
-        
         $this->read_db->where(array('fk_account_system_id'=>$this->session->user_account_system_id));
       }
   

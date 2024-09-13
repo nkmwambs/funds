@@ -35,8 +35,12 @@ class Income_account_model extends MY_Model
 
   function detail_tables()
   {
-    return ['expense_account', 'project_income_account'];
+    return ['expense_account'];
   }
+
+  // function detail_list_table_where(){
+  //   $this->read_db->where(array('fk_funder_id'=> hash_id($this->id, 'decode')));
+  // }
 
   function list_table_where()
   {

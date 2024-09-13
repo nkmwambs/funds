@@ -174,4 +174,18 @@ class Expense_account_model extends MY_Model
   function view()
   {
   }
+
+  public function single_form_add_visible_columns()
+  {
+    return [
+      "expense_account_name",
+      "expense_account_description",
+      "expense_account_code",
+      "expense_account_is_admin",
+      "expense_vote_heads_category_name",
+      "expense_account_is_active",
+      "expense_account_is_budgeted",
+      "income_account_name"
+    ];
+  }
 }

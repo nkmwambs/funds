@@ -96,6 +96,10 @@ class Income_account extends MY_Controller
       $this->read_db->group_end();      
     }
     
+    if($this->session->master_table){
+      $this->read_db->where(array('income_account.fk_funder_id'=>$this->input->post('id')));
+    }
+
     if(!$this->session->system_admin){
       $this->read_db->where(array('income_account.fk_account_system_id'=>$this->session->user_account_system_id));
     }
@@ -142,6 +146,10 @@ class Income_account extends MY_Controller
       $this->read_db->group_end();
     }
     
+    if($this->session->master_table){
+      $this->read_db->where(array('income_account.fk_funder_id'=>$this->input->post('id')));
+    }
+
     if(!$this->session->system_admin){
       $this->read_db->where(array('income_account.fk_account_system_id'=>$this->session->user_account_system_id));
     }
