@@ -112,9 +112,11 @@ class Budget_item extends MY_Controller
 
     $office = $this->read_db->get('office')->row();
 
+    // log_message('error', json_encode($office));
+    
     $budget_id=$this->budget_item_model->get_budget_id_by_budget_item_id(hash_id($this->id,'decode'));
 
-    $pca_objectives = $this->get_office_year_pca_objectives($office->office_id, $budget_id);
+    $pca_objectives = []; //$this->get_office_year_pca_objectives($office->office_id, $budget_id);
 
     // log_message('error', json_encode($pca_objectives));
     // $months = month_order($office->office_id);

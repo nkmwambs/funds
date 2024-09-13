@@ -61,11 +61,17 @@ class Fields_base
 
     foreach ($name_default as $field => $default_value) {
       // log_message('error', json_encode(['field' => $field, 'default_value' => $default_value]));
-      if ($this->column == $field && (strlen($default_value) > 0 || $default_value == null)) {
+
+      if($this->column == $field && $default_value == null){
         $this->is_field_required = false;
-        // log_message('error', json_encode(['field' => $field, 'default_value' => $default_value]));
         break;
       }
+
+      // if ($this->column == $field && ($default_value == null || strlen($default_value) > 0)) {
+      //   $this->is_field_required = false;
+      //   // log_message('error', json_encode(['field' => $field, 'default_value' => $default_value]));
+      //   break;
+      // }
     }
 
     return $this->is_field_required;

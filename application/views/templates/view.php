@@ -126,7 +126,7 @@ $columns = array_chunk($keys,$this->config->item('master_table_columns'),true);
                         echo number_format($column_value,2);
                         //echo $column_value;
                     }else{
-                        echo ucwords(str_replace('_',' ',$column_value));
+                        echo $column_value!=null ? ucwords(str_replace('_',' ',$column_value)):get_phrase('not_set');
                     }
                   ?>
                 </td>

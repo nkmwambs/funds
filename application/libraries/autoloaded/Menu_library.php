@@ -31,7 +31,6 @@ class Menu_library {
         $this->CI->EXT = ".php";
 
         $this->CI->load->model('autoloaded/menu_model');
-        $this->CI->load->model('unique_identifier_model');
 
     }
 
@@ -62,11 +61,11 @@ class Menu_library {
     }
 
     function set_menu_sessions(){
-      $menus = $this->getMenuItems();//$this->CI->grants_model->get_all_tables();
-      
+
+      $menus = $this->getMenuItems();
       $new_menu_items = $this->CI->menu_model->new_menu_items();
 
-      // log_message('error',json_encode($new_menu_items));
+      // log_message('error', json_encode($new_menu_items));
 
       if(!empty($new_menu_items)){
         $this->CI->menu_model->upsert_menu($menus);
@@ -79,9 +78,6 @@ class Menu_library {
           $this->CI->session->unset_userdata('user_menu');
           $this->CI->session->unset_userdata('user_priority_menu');
           $this->CI->session->unset_userdata('user_more_menu');
-
-          // Check if menu are there or insert
-          //$this->CI->menu_model->upsert_menu($menus);
       }
 
       // Create a menu session
@@ -91,79 +87,83 @@ class Menu_library {
           $user_menu_items =  $this->CI->menu_model->upsert_user_menu();
 
           $full_user_menu =  elevate_array_element_to_key($user_menu_items,'menu_derivative_controller');
-
-          $user_menu_by_priority_groups = elevate_assoc_array_element_to_key($user_menu_items,'menu_user_order_priority_item');
           
-          $user_priority_menu = elevate_array_element_to_key($user_menu_by_priority_groups[1],'menu_derivative_controller');
+          $user_menu_by_priority_groups = elevate_assoc_array_element_to_key($user_menu_items,'menu_user_order_priority_item');
+  
+          $user_priority_menu = [];
+          if(isset($user_menu_by_priority_groups[1])){
+            $user_priority_menu = elevate_array_element_to_key($user_menu_by_priority_groups[1],'menu_derivative_controller');
+          }
 
-          $user_more_menu = elevate_array_element_to_key($user_menu_by_priority_groups[0],'menu_derivative_controller');
-
+          $user_more_menu = [];
+          if(isset($user_menu_by_priority_groups[0])){
+            $user_more_menu = elevate_array_element_to_key($user_menu_by_priority_groups[0],'menu_derivative_controller');
+          }
 
           $this->CI->session->set_userdata('user_menu',$full_user_menu);
 
           // Build user priority and more menu based on user read label permission of the logged role
-          if(!$this->CI->session->system_admin){
+          // if(!$this->CI->session->system_admin){
 
-              $user_priority_menu_based_on_permissions = array();
-              $user_more_menu_based_on_permissions = array();
+          //     $user_priority_menu_based_on_permissions = array();
+          //     $user_more_menu_based_on_permissions = array();
 
-              // Filter user priority menu based on the read label permission of the logged role
-              foreach($user_priority_menu as $menu => $options ){
-                //array_key_exists('read',$this->session->role_permissions[ucfirst($menu)[1]]);
-                // if($this->CI->user_model->check_role_has_permissions($menu,'read')){
-                //   $user_priority_menu_based_on_permissions[$menu] = $options;
-                // } 
+          //     // Filter user priority menu based on the read label permission of the logged role
+          //     foreach($user_priority_menu as $menu => $options ){
+          //       //array_key_exists('read',$this->session->role_permissions[ucfirst($menu)[1]]);
+          //       // if($this->CI->user_model->check_role_has_permissions($menu,'read')){
+          //       //   $user_priority_menu_based_on_permissions[$menu] = $options;
+          //       // } 
 
-                if(isset($this->CI->session->role_permissions[ucfirst($menu)]) && array_key_exists('read',$this->CI->session->role_permissions[ucfirst($menu)][1])){
-                  $user_priority_menu_based_on_permissions[$menu] = $options;
-                } 
-              }
+          //       if(isset($this->CI->session->role_permissions[ucfirst($menu)]) && array_key_exists('read',$this->CI->session->role_permissions[ucfirst($menu)][1])){
+          //         $user_priority_menu_based_on_permissions[$menu] = $options;
+          //       } 
+          //     }
 
-              // Filter the user more menu based on the read label permission of the logged role
-              foreach($user_more_menu as $menu => $options ){
-                if(isset($this->CI->session->role_permissions[ucfirst($menu)])  && array_key_exists('read',$this->CI->session->role_permissions[ucfirst($menu)][1])){
-                  $user_more_menu_based_on_permissions[$menu] = $options;
-                } 
-              }
+          //     // Filter the user more menu based on the read label permission of the logged role
+          //     foreach($user_more_menu as $menu => $options ){
+          //       if(isset($this->CI->session->role_permissions[ucfirst($menu)])  && array_key_exists('read',$this->CI->session->role_permissions[ucfirst($menu)][1])){
+          //         $user_more_menu_based_on_permissions[$menu] = $options;
+          //       } 
+          //     }
               
-              // Check if the filter priority menu has less than the config set max_priority_menu_items,
-              // If yes, take the first max_priority_menu_items items from user more menu anf push them to the 
-              // user priority menu
+          //     // Check if the filter priority menu has less than the config set max_priority_menu_items,
+          //     // If yes, take the first max_priority_menu_items items from user more menu anf push them to the 
+          //     // user priority menu
 
-              if(
-                  count($user_priority_menu_based_on_permissions) < $this->CI->config->item('max_priority_menu_items') - 1 && 
-                  count($user_more_menu_based_on_permissions) > 0  
-              ){
+          //     if(
+          //         count($user_priority_menu_based_on_permissions) < $this->CI->config->item('max_priority_menu_items') - 1 && 
+          //         count($user_more_menu_based_on_permissions) > 0  
+          //     ){
+          //         // Makes multiple arrays of user_more_menu_based_on_permissions of size of config max_priority_menu_items
+          //         // Take the first max_priority_menu_items elements to $user_priority_menu_based_on_permissions
 
-                  // Makes multiple arrays of user_more_menu_based_on_permissions of size of config max_priority_menu_items
-                  // Take the first max_priority_menu_items elements to $user_priority_menu_based_on_permissions
+          //         $chunked_user_more = array_chunk($user_more_menu_based_on_permissions,
+          //         $this->CI->config->item('max_priority_menu_items') - 1,true);
 
-                  $chunked_user_more = array_chunk($user_more_menu_based_on_permissions,
-                  $this->CI->config->item('max_priority_menu_items') - 1,true);
+          //         foreach($chunked_user_more[0] as $menu => $options){
+          //           $user_priority_menu_based_on_permissions[$menu] = $options;
+          //         }
 
-                  foreach($chunked_user_more[0] as $menu => $options){
-                    $user_priority_menu_based_on_permissions[$menu] = $options;
-                  }
-
-                  // Remove the first max_priority_menu_items elements from $user_more_menu_based_on_permissions 
-                  // and assign the remaning to $user_more_menu_based_on_permissions 
-                  $user_more_menu_based_on_permissions = array_slice($user_more_menu_based_on_permissions,
-                  $this->CI->config->item('max_priority_menu_items') - 1);
+          //         // Remove the first max_priority_menu_items elements from $user_more_menu_based_on_permissions 
+          //         // and assign the remaning to $user_more_menu_based_on_permissions 
+          //         $user_more_menu_based_on_permissions = array_slice($user_more_menu_based_on_permissions,
+          //         $this->CI->config->item('max_priority_menu_items') - 1);
                   
                   
-              } 
+          //     } 
 
-              $this->CI->session->set_userdata('user_priority_menu',$user_priority_menu_based_on_permissions);
+          //     $this->CI->session->set_userdata('user_priority_menu',$user_priority_menu_based_on_permissions);
 
-              $this->CI->session->set_userdata('user_more_menu',$user_more_menu_based_on_permissions);
+          //     $this->CI->session->set_userdata('user_more_menu',$user_more_menu_based_on_permissions);
             
-            }else{
+          //   }else{
                 
               $this->CI->session->set_userdata('user_priority_menu',$user_priority_menu);
 
               $this->CI->session->set_userdata('user_more_menu',$user_more_menu);
             
-            }      
+            // }      
 
       }
 
@@ -172,15 +172,15 @@ class Menu_library {
     
     function navigation(){
       
-      $permission = $this->CI->session->role_permissions;
+      // $permission = $this->CI->session->role_permissions;
 
       $this->set_menu_sessions();
 
       $menus = $this->CI->session->user_priority_menu;
-
+      // log_message('error', json_encode($menus));
       $nav = "";
 
-      $lib = "";
+      // $lib = "";
       $menu_icon = '';
 
       $all_active_menus_obj = $this->CI->db->get_where('menu',

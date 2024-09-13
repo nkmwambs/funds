@@ -113,10 +113,14 @@ class Budget_item_model extends MY_Model
   public function get_budget_id_by_budget_item_id($budget_item_id){
 
     $this->read_db->select('fk_budget_id');
-
     $this->read_db->where(['budget_item_id'=>$budget_item_id]);
+    $budget_obj = $this->read_db->get('budget_item');
 
-    $budget_id=$this->read_db->get('budget_item')->row()->fk_budget_id;
+    $budget_id = 0;
+
+    if($budget_obj->num_rows() > 0){
+      $budget_id = $budget_obj->row()->fk_budget_id;
+    }
 
     return $budget_id;
 

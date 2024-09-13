@@ -65,14 +65,14 @@ class Menu_model extends CI_Model
 
     $data = array();
     $this->load->model('permission_model');
-
+    
     foreach ($menus as $menu => $menuItems) {
       $data['menu_name'] = $menu;
       $data['menu_derivative_controller'] = $menu;
 
-      if (!$this->session->system_admin) {
+      // if (!$this->session->system_admin) {
         //$this->write_db->where(['menu_is_active'=>1]);
-      }
+      // }
 
       $count_of_active_menus = $this->write_db->get_where('menu', array('menu_derivative_controller' => $menu))->num_rows();
 
@@ -153,47 +153,76 @@ class Menu_model extends CI_Model
   {
 
     // Get all menu elements
+    $this->db->select(['menu.*']);
     if (!$this->session->system_admin) {
       $this->db->where(['menu_is_active' => 1]);
+      $this->db->join('permission','permission.fk_menu_id=menu.menu_id');
+      $this->db->join('role_permission','role_permission.fk_permission_id=permission.permission_id');
+      $this->db->where_in('role_permission.fk_role_id', $this->session->role_ids);
     }
-    //$this->db->where(array('menu_is_active'=>1));
-    $menu_elements =  $this->db->get('menu')->result_array();
+    
+    $menu_elements_by_role_permission =  $this->db->get('menu')->result_array();
+
+    $menu_elements_by_permission_template = [];
+    
+    if (!$this->session->system_admin) {
+      $this->db->select(['menu.*']);
+      $this->db->where(['menu_is_active' => 1]);
+      $this->db->join('permission','permission.fk_menu_id=menu.menu_id');
+      $this->db->join('permission_template','permission_template.fk_permission_id=permission.permission_id');
+      $this->db->join('role_group','role_group.role_group_id=permission_template.fk_role_group_id');
+      $this->db->join('role_group_association','role_group_association.fk_role_group_id=role_group.role_group_id');
+      $this->db->where_in('role_group_association.fk_role_id', $this->session->role_ids);  
+      $menu_elements_by_permission_template =  $this->db->get('menu')->result_array();
+    }
+
+    $menu_elements = array_merge($menu_elements_by_permission_template, $menu_elements_by_role_permission );
+
+    // log_message('error', json_encode($menu_elements));
 
     //Array of menu ids
     $menu_ids = array_column($menu_elements, 'menu_id');
 
     $sizeOfUserMenuItems = $this->get_count_of_user_menu_items();
-    $sizeOfMenuItemsByDatabase = $this->get_count_of_menu_items();
+    $sizeOfMenuItemsByDatabase = count($menu_elements); //$this->get_count_of_menu_items();
 
     $user_menu_data = array();
 
     if ($sizeOfUserMenuItems !== $sizeOfMenuItemsByDatabase) {
 
-      $menu_user_order_items = $this->db->get_where(
-        'menu_user_order',
-        array('fk_user_id' => $this->session->user_id)
-      );
+      // $menu_user_order_items = $this->db->get_where(
+      //   'menu_user_order',
+      //   array('fk_user_id' => $this->session->user_id)
+      // );
 
-      $order = $menu_user_order_items->num_rows();
+      // $order = $menu_user_order_items->num_rows();
 
+      $startCount = 1;
       foreach ($menu_ids as $menu_id) {
         // This allows making one of the menu items be of order 0
         $user_menu_data['menu_user_order_priority_item'] = 1;
-        if (sizeof($menu_ids) - 1 == $order) {
-          $user_menu_data['menu_user_order_priority_item'] = 0;
-        } elseif ($order > $this->config->item('max_priority_menu_items') - 1) {
+        if($startCount > $this->config->item('max_priority_menu_items')){
           $user_menu_data['menu_user_order_priority_item'] = 0;
         }
+
+        $startCount++;
+
+        // $user_menu_data['menu_user_order_priority_item'] = 1;
+        // if (sizeof($menu_ids) - 1 > $order) {
+        //   $user_menu_data['menu_user_order_priority_item'] = 0;
+        // } elseif ($order > $this->config->item('max_priority_menu_items') - 1) {
+        //   $user_menu_data['menu_user_order_priority_item'] = 0;
+        // }
 
         if ($this->get_id_of_default_menu_item() ==  $menu_id) {
           $user_menu_data['menu_user_order_priority_item'] = 1;
         }
 
-        $order++;
+        // $order++;
 
         $user_menu_data['fk_user_id'] = $this->session->user_id;
         $user_menu_data['fk_menu_id'] = $menu_id;
-        $user_menu_data['menu_user_order_level'] = $order;
+        $user_menu_data['menu_user_order_level'] = $startCount;
 
         if ($this->db->get_where(
           'menu_user_order',
@@ -209,9 +238,10 @@ class Menu_model extends CI_Model
 
       }
     }
-
+    $user_menu_items = $this->get_user_menu_items();
+    // log_message('error', json_encode($user_menu_items));
     //Get user menu items in their user defined order
-    return $this->get_user_menu_items();
+    return $user_menu_items;
   }
 
 

@@ -1256,7 +1256,7 @@ private function list_budget_month_order($budget_id, $custom_year_start_date = "
 
     // log_message('error', json_encode(['fy' => $fy, 'start_month' => $start_month, 'next_vouching_date' => $next_vouching_date]));
 
-    $mfr_budget_tag_id = $this->budget_tag_model->get_budget_tag_id_based_on_reporting_month($office_id, $next_vouching_date, $custom_financial_year)['budget_tag_id'];
+    $mfr_budget_tag_id = isset($this->budget_tag_model->get_budget_tag_id_based_on_reporting_month($office_id, $next_vouching_date, $custom_financial_year)['budget_tag_id'])?:0;
     $max_budget_approval_ids = $this->general_model->get_max_approval_status_id('budget');
 
     // $custom_financial_year_id_of_last_active_mfr = $this->custom_financial_year_id_of_last_active_mfr();
