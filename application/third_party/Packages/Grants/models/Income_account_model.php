@@ -30,7 +30,7 @@ class Income_account_model extends MY_Model
 
   function lookup_tables()
   {
-    return ['account_system'];
+    return ['account_system','funder'];
   }
 
   function detail_tables()
@@ -49,6 +49,64 @@ class Income_account_model extends MY_Model
   {
 
     return ['income_account_code', 'fk_account_system_id'];
+  }
+
+  public function master_table_visible_columns()
+  {
+    return [
+      "income_account_name",
+      "income_account_description",
+      "income_account_code",
+      "income_account_is_active",
+      "income_account_is_budgeted",
+      "funder_name",
+      "income_vote_heads_category_name",
+      "account_system_name",
+      "income_account_created_by",
+      "income_account_created_date",
+      "income_account_last_modified_date",
+      "income_account_last_modified_by",
+    ];
+  }
+
+  public function list_table_visible_columns()
+  {
+    return [
+      "income_account_track_number",
+      "income_account_name",
+      "income_account_code",
+      "income_account_is_active",
+      "funder_name",
+      "account_system_name"
+    ];
+  }
+
+  public function edit_visible_columns()
+  {
+    return [
+      "income_account_name",
+      "income_account_description",
+      "income_account_code",
+      "income_account_is_active",
+      "income_account_is_budgeted",
+      "funder_name",
+      "income_vote_heads_category_name",
+      "account_system_name"
+    ];
+  }
+
+  public function single_form_add_visible_columns()
+  {
+    return [
+      "income_account_name",
+      "income_account_description",
+      "income_account_code",
+      "income_account_is_active",
+      "income_account_is_budgeted",
+      "funder_name",
+      "income_vote_heads_category_name",
+      "account_system_name"
+    ];
   }
 
   function list()

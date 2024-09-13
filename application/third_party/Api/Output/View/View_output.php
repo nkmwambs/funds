@@ -73,7 +73,7 @@ class View_output extends Output_template{
         }
 
         $visible_columns = $get_all_table_fields;
-        $lookup_columns = array();
+        // $lookup_columns = array();
 
         if(is_array($master_table_visible_columns) && count($master_table_visible_columns) > 0 ){
         $visible_columns = $master_table_visible_columns;
@@ -83,10 +83,12 @@ class View_output extends Output_template{
                 
                 // Add primary_keys for the lookup tables in the visible columns array
                 $lookup_table_fields_data = $this->CI->grants_model->table_fields_metadata($lookup_table);
+
+                // log_message('error', json_encode($lookup_table_fields_data));
                 
                 foreach($lookup_table_fields_data as $field_data){
-                if($field_data->primary_key == 1){
-                    array_push($visible_columns,$field_data->name);
+                if($field_data['primary_key'] == 1){
+                    array_push($visible_columns,$field_data['name']);
                  }
                 }
 

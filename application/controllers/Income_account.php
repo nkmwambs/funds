@@ -41,14 +41,8 @@ class Income_account extends MY_Controller
   }
 
   function columns(){
-    $columns = [
-      'income_account_id',
-      'income_account_track_number',
-      'income_account_name',
-      'income_account_is_active',
-      'account_system_name'
-    ];
-
+    $columns = $this->income_account_model->list_table_visible_columns();
+    array_unshift($columns,'income_account_id');
     return $columns;
   }
 
@@ -109,6 +103,7 @@ class Income_account extends MY_Controller
     $this->read_db->select($columns);
     $this->read_db->join('status','status.status_id=income_account.fk_status_id');
     $this->read_db->join('account_system','account_system.account_system_id=income_account.fk_account_system_id');
+    $this->read_db->join('funder','funder.funder_id=income_account.fk_funder_id','left');
 
     $result_obj = $this->read_db->get('income_account');
     
@@ -153,7 +148,7 @@ class Income_account extends MY_Controller
 
     $this->read_db->join('status','status.status_id=income_account.fk_status_id');
     $this->read_db->join('account_system','account_system.account_system_id=income_account.fk_account_system_id');
-    
+    $this->read_db->join('funder','funder.funder_id=income_account.fk_funder_id','left');
 
     $this->read_db->from('income_account');
     $count_all_results = $this->read_db->count_all_results();

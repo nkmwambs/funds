@@ -34,15 +34,27 @@ class Funder extends MY_Controller
       $result['is_multi_row'] = false;
       $result['show_add_button'] = true;
     }elseif($this->action == 'view'){
-      $this->load->model('project_model');
-
+    
       $result['header'] = $this->master_table();
 
-      $result['detail']['project']['columns'] = $this->project_model->columns();
-      $result['detail']['project']['has_details_table'] = true; 
-      $result['detail']['project']['has_details_listing'] = false;
-      $result['detail']['project']['is_multi_row'] = false;
-      $result['detail']['project']['show_add_button'] = true;
+      $detail_tables = $this->funder_model->detail_tables();
+
+      if(!empty($detail_tables)){
+        foreach($detail_tables as $detail_table){
+          $this->load->model($detail_table.'_model');
+          $result['detail'][$detail_table]['columns'] = $this->{$detail_table.'_model'}->list_table_visible_columns();
+          $result['detail'][$detail_table]['has_details_table'] = true; 
+          $result['detail'][$detail_table]['has_details_listing'] = false;
+          $result['detail'][$detail_table]['is_multi_row'] = false;
+          $result['detail'][$detail_table]['show_add_button'] = true;
+        }
+      }
+
+      // $result['detail']['project']['columns'] = $this->project_model->columns();
+      // $result['detail']['project']['has_details_table'] = true; 
+      // $result['detail']['project']['has_details_listing'] = false;
+      // $result['detail']['project']['is_multi_row'] = false;
+      // $result['detail']['project']['show_add_button'] = true;
 
       return $result;
     }else{

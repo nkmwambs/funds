@@ -1639,7 +1639,7 @@ class Grants
 
       $model = $this->current_model;
 
-      if (method_exists($this->CI->$model, 'edit') && strlen($this->CI->$model->edit($id)) > 0) {
+      if (method_exists($this->CI->$model, 'edit') && $this->CI->$model->edit($id) != null) {
         echo $this->CI->$model->edit($id);
       } else {
         echo $this->CI->grants_model->edit($id);

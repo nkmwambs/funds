@@ -37,7 +37,23 @@ class Project_model extends MY_Model
 
     public function master_table_hidden_columns(){}
 
-    public function list_table_visible_columns(){}
+    public function list_table_visible_columns(){
+      $columns = [
+        'project_track_number',
+        'project_name',
+        'project_code',
+        'project_start_date',
+        'project_end_date',
+        'project_created_date',
+        'funder_name'
+     ];
+
+     return $columns;
+    }
+
+    // function columns(){
+      
+    // }
 
     public function list_table_hidden_columns(){}
 
@@ -138,20 +154,6 @@ class Project_model extends MY_Model
      return [
               'income_account'=>['income_account_is_donor_funded'=>1,'income_account_is_active'=>1]
             ];
-   }
-
-   function columns(){
-     $columns = [
-        'project_track_number',
-        'project_name',
-        'project_code',
-        'project_start_date',
-        'project_end_date',
-        'project_created_date',
-        'funder_name'
-     ];
-
-     return $columns;
    }
 
 }

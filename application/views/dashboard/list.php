@@ -1,6 +1,6 @@
 <?php if (!defined('BASEPATH')) exit('No direct script access allowed');
  //print_r($this->session->all_userdata());
-//  echo json_encode($this->db->field_data('status'));
+//  echo json_encode($this->db->field_data('income_account'));
 
 // echo  json_encode($this->session->data_privacy_consented);
 

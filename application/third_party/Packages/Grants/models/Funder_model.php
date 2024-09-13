@@ -31,7 +31,7 @@ class Funder_model extends MY_Model
     }
 
     public function detail_tables(){
-      return array('project');
+      return ['project','income_account'];
     }
 
   
