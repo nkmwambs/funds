@@ -34,6 +34,16 @@ class Expense_account_model extends MY_Model
     return ['income_account'];
   }
 
+  function lookup_values()
+  {
+    $lookup_values = parent::lookup_values();
+    
+    $this->read_db->select(['income_account_id', 'income_account_name']);
+    $lookup_values['income_account'] = $this->read_db->get('income_account')->result_array(); 
+
+    return $lookup_values;
+  }
+
   /**
    * get_expense_income_account_by_id
    * 
