@@ -1662,3 +1662,10 @@ if(!function_exists('isDateRangeWithinAnotherRange')){
         return ($childStartTimestamp >= $parentStartTimestamp) && ($childEndTimestamp <= $parentEndTimestamp);
     }
 }
+
+
+if(!function_exists('removeCommaSeparator')){
+    function removeCommaSeparator($string){
+        return str_replace(',', '', $string);
+    }
+}

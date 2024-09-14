@@ -70,7 +70,8 @@ class Budget_model extends MY_Model
 
   public function master_multi_form_add_visible_columns()
   {
-    return array('budget_name', 'budget_year', 'office_name');
+    // return array('budget_name', 'budget_year', 'office_name');
+    return array('funder_name','office_name','budget_year','budget_tag_name');
   }
 
   public function detail_multi_form_add_visible_columns()
@@ -129,7 +130,7 @@ class Budget_model extends MY_Model
 
     if (!$this->session->system_admin) {
       $this->read_db->where_in('office_id', array_column($this->session->hierarchy_offices, 'office_id'));
-      $this->read_db->where(array('office_is_readonly'=>0, 'fk_context_definition_id' => 1));
+      $this->read_db->where(['office_is_readonly' => 0]);
       $lookup_values['office'] = $this->read_db->get('office')->result_array();
 
       if ($this->session->env == 'production' || (!$this->config->item('show_all_budget_tags') && !$this->session->env == 'production')) {
@@ -158,7 +159,11 @@ class Budget_model extends MY_Model
 
       $this->read_db->where(array('fk_account_system_id' => $this->session->user_account_system_id, 'budget_tag_is_active' => 1));
       $lookup_values['budget_tag'] = $this->read_db->get('budget_tag')->result_array();
+
+      $this->read_db->where(['funder_is_active' => 1]);
+      $lookup_values['funder'] = $this->read_db->get('funder')->result_array();
     }
+
 
     return $lookup_values;
   }

@@ -171,14 +171,12 @@ class Income_account_model extends MY_Model
     return $income_account;
   }
 
-  function income_account_by_office_id($office_id){
+  function income_account_by_funder_id($funder_id){
 
     $income_accounts = [];
 
     $this->read_db->select(array('income_account_id','income_account_name'));
-    $this->read_db->where(array('income_account_is_budgeted' => 1, 'income_account_is_active' => 1, 'office_id' => $office_id));
-    $this->read_db->join('account_system','account_system.account_system_id=income_account.fk_account_system_id');
-    $this->read_db->join('office','office.fk_account_system_id=account_system.account_system_id');
+    $this->read_db->where(array('income_account_is_budgeted' => 1, 'income_account_is_active' => 1, 'fk_funder_id' => $funder_id));
     $income_account_obj = $this->read_db->get('income_account');
 
     if($income_account_obj->num_rows() > 0){
@@ -187,6 +185,23 @@ class Income_account_model extends MY_Model
 
     return $income_accounts;
   }
+
+  // function income_account_by_office_id($office_id){
+
+  //   $income_accounts = [];
+
+  //   $this->read_db->select(array('income_account_id','income_account_name'));
+  //   $this->read_db->where(array('income_account_is_budgeted' => 1, 'income_account_is_active' => 1, 'office_id' => $office_id));
+  //   $this->read_db->join('account_system','account_system.account_system_id=income_account.fk_account_system_id');
+  //   $this->read_db->join('office','office.fk_account_system_id=account_system.account_system_id');
+  //   $income_account_obj = $this->read_db->get('income_account');
+
+  //   if($income_account_obj->num_rows() > 0){
+  //     $income_accounts = $income_account_obj->result_array();
+  //   }
+
+  //   return $income_accounts;
+  // }
  
   // function lookup_values_where($table = ''){
   //   return array('income_account_is_donor_funded'=>1);

@@ -368,6 +368,7 @@ class Budget extends MY_Controller
       'budget_id',
       'budget_track_number',
       'office_name',
+      'funder_name',
       'budget_tag_name',
       'budget_year',
       'status_name',
@@ -440,6 +441,7 @@ class Budget extends MY_Controller
     $this->read_db->join('office','office.office_id=budget.fk_office_id');
     $this->read_db->join('custom_financial_year','custom_financial_year.custom_financial_year_id=budget.fk_custom_financial_year_id', 'LEFT');
     $this->read_db->join('month','month.month_number=custom_financial_year.custom_financial_year_start_month', 'LEFT');
+    $this->read_db->join('funder','funder.funder_id=budget.fk_funder_id');
     $this->read_db->where_in('budget.fk_office_id',array_column($this->session->hierarchy_offices,'office_id'));
     $result_obj = $this->read_db->get('budget');
     
@@ -494,6 +496,7 @@ class Budget extends MY_Controller
     $this->read_db->join('office','office.office_id=budget.fk_office_id');
     $this->read_db->join('custom_financial_year','custom_financial_year.custom_financial_year_id=budget.fk_custom_financial_year_id', 'LEFT');
     $this->read_db->join('month','month.month_number=custom_financial_year.custom_financial_year_start_month', 'LEFT');
+    $this->read_db->join('funder','funder.funder_id=budget.fk_funder_id');
     $this->read_db->where_in('budget.fk_office_id',array_column($this->session->hierarchy_offices,'office_id'));
 
     $this->read_db->from('budget');
@@ -621,11 +624,13 @@ class Budget extends MY_Controller
     echo json_encode($valid_budget_tags);
   }
 
-  function list_budgetable_income_account($office_id){
-    
+  function list_budgetable_income_account(){
+    $post = $this->input->post();
+    $funder_id = $post['funder_id'];
+
     $this->load->model('income_account_model');
 
-    $income_accounts = $this->income_account_model->income_account_by_office_id($office_id);
+    $income_accounts = $this->income_account_model->income_account_by_funder_id($funder_id);
 
     echo json_encode($income_accounts);
   }
@@ -650,6 +655,7 @@ class Budget extends MY_Controller
     $budget_insert_data['budget_track_number'] = $tracking['budget_track_number'];
     $budget_insert_data['budget_name'] = $tracking['budget_name'];
     $budget_insert_data['fk_office_id'] = $header['fk_office_id'];
+    $budget_insert_data['fk_funder_id'] = $header['fk_funder_id'];
     $budget_insert_data['budget_year'] = $header['budget_year'];
     $budget_insert_data['fk_budget_tag_id'] = $header['fk_budget_tag_id'];
     $budget_insert_data['fk_status_id'] = $this->grants_model->initial_item_status('budget');
@@ -672,7 +678,7 @@ class Budget extends MY_Controller
       $budget_limit_insert_data[$i]['budget_limit_track_number'] = $budget_limit_tracking['budget_limit_track_number'];
       $budget_limit_insert_data[$i]['budget_limit_name'] = $budget_limit_tracking['budget_limit_name'];
       $budget_limit_insert_data[$i]['fk_income_account_id'] = $details['fk_income_account_id'][$i];
-      $budget_limit_insert_data[$i]['budget_limit_amount'] = $details['budget_limit_amount'][$i];
+      $budget_limit_insert_data[$i]['budget_limit_amount'] = removeCommaSeparator($details['budget_limit_amount'][$i]); //$details['budget_limit_amount'][$i];
       $budget_limit_insert_data[$i]['fk_budget_id'] = $budget_id;
 
       $budget_limit_insert_data[$i]['fk_status_id'] = $this->grants_model->initial_item_status('budget_limit');

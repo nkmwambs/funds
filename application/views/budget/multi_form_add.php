@@ -11,6 +11,7 @@
 <?php 
     extract($result);
     echo hash_id($this->id, 'decode');
+    // log_message('error',json_encode($fields));
 ?>
 
 <div class='row'>
@@ -28,33 +29,36 @@
 
                 <div class='form-group'>
 
-                    <!-- <span> -->
-                        <label class='control-label col-xs-1'><?= get_phrase('office_name'); ?></label>
-                        <div class='col-xs-3'>
-                            <?php 
-                                echo  $fields['office_name'];
-                            ?>
-                        </div>
-                        
-                    <!-- </span> -->
+                    <label class='control-label col-xs-2'><?= get_phrase('funder_name'); ?></label>
+                    <div class='col-xs-4'>
+                        <?php 
+                            echo  $fields['funder_name'];
+                        ?>
+                    </div>
 
-                    <!-- <span> -->
-                        <label class='control-label col-xs-1'><?= get_phrase('financial_year'); ?></label>
-                        <div class='col-xs-3'>
+                    <label class='control-label col-xs-2'><?= get_phrase('office_name'); ?></label>
+                    <div class='col-xs-4'>
+                        <?php 
+                            echo  $fields['office_name'];
+                        ?>
+                    </div>
+
+                </div>
+
+                <div class='form-group'>
+                    <label class='control-label col-xs-2'><?= get_phrase('financial_year'); ?></label>
+                        <div class='col-xs-4'>
                             <?php 
                                 echo  $fields['budget_year'];
                             ?>
-                        </div>
-                    <!-- </span> -->
+                    </div>
 
-                    <!-- <span> -->
-                        <label class='control-label col-xs-1'><?= get_phrase('budget_tag_name'); ?></label>
-                        <div class='col-xs-3'>
-                            <select class="form-control required account_fields" name='header[fk_budget_tag_id]' id='fk_budget_tag_id'>
-                                <option value=""><?= get_phrase('select_budget_tag_name'); ?></option>
-                            </select>
-                        </div>
-                    <!-- </span> -->
+                    <label class='control-label col-xs-2'><?= get_phrase('budget_tag_name'); ?></label>
+                    <div class='col-xs-4'>
+                        <select class="form-control required account_fields select2" name='header[fk_budget_tag_id]' id='fk_budget_tag_id'>
+                            <option value=""><?= get_phrase('select_budget_tag_name'); ?></option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class='form-group'>
@@ -84,7 +88,7 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <input type = 'number' class="form-control budget_limit_amount" name = "details[budget_limit_amount][]" value = "0" />
+                                        <input type = 'text' class="form-control budget_limit_amount number-fields" name = "details[budget_limit_amount][]" value = "0" />
                                     </td>
                                 </tr>
                             </tbody>
@@ -124,32 +128,14 @@
         row.remove()
     })
 
-    $('.fk_office_id').on('change', function () {
-        // alert('Hello')
-        const office_id = $(this).val()
-        const url = "<?=base_url();?>budget/list_budgetable_income_account/" + office_id
-
-        $.get(url, function (resp) {
-            const obj = JSON.parse(resp)
-            // alert(resp)
-            let options = '<option value = "">Select Income Account</option>'
-            $.each(obj, function (i,el) {
-                options += '<option value = "' + el.income_account_id + '">' + el.income_account_name + '</option>'
-            })
-            
-            $(".fk_income_account_id").html(options)
-
-            
-        })
-    })
-
-    $('#fk_office_id, #budget_year, #fk_budget_tag_id').on('change', function () {
+    $('#fk_office_id, #fk_funder_id, #budget_year, #fk_budget_tag_id').on('change', function () {
         
         const office_id = $('#fk_office_id').val()
         const budget_year = $('#budget_year').val()
         const fk_budget_tag_id = $('#fk_budget_tag_id').val()
+        const fk_funder_id = $('#fk_funder_id').val()
 
-        if(office_id > 0 && budget_year > 0 && fk_budget_tag_id > 0){
+        if(office_id > 0 && budget_year > 0 && fk_budget_tag_id > 0 && fk_funder_id >0){
             $('.btn-insert, .save').removeClass('hidden')
         }
     })

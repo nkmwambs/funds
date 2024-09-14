@@ -48,7 +48,9 @@ class Funder_model extends MY_Model
 
     public function detail_list_table_hidden_columns(){}
 
-    public function single_form_add_visible_columns(){}
+    public function single_form_add_visible_columns(){
+      return array('funder_name','funder_description', 'funder_is_active', 'account_system_name');
+    }
 
     public function single_form_add_hidden_columns(){}
 

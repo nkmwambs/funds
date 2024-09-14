@@ -1237,39 +1237,39 @@ extract($result);
     });
 
     //Add Commas Added by Livingstone Onduso 
-    $(document).on('keydown', '.number-fields', function(event) {
+    // $(document).on('keydown', '.number-fields', function(event) {
 
-        addCommasToNumber($(this), event);
+    //     addCommasToNumber($(this), event);
 
-    });
-
-
-    //Function to put commas when User is typing Added  by Onduso
-    function addCommasToNumber(elem, event) {
+    // });
 
 
-        $(elem).on('input', function() {
-            let value = $(elem).val().replace(/,/g, '');
-            let parts = value.split('.');
-            let integerPart = parseInt(parts[0]).toLocaleString();
-            let decimalPart = parts.length > 1 ? '.' + parts[1] : '';
-            let formattedNumber = integerPart + decimalPart;
+    // //Function to put commas when User is typing Added  by Onduso
+    // function addCommasToNumber(elem, event) {
 
-            //Add commas and check if after stripping off the commas
 
-            formattedNumber = formattedNumber.replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+    //     $(elem).on('input', function() {
+    //         let value = $(elem).val().replace(/,/g, '');
+    //         let parts = value.split('.');
+    //         let integerPart = parseInt(parts[0]).toLocaleString();
+    //         let decimalPart = parts.length > 1 ? '.' + parts[1] : '';
+    //         let formattedNumber = integerPart + decimalPart;
 
-            if (!isNaN(parseFloat(formattedNumber))) {
-                $(elem).val(formattedNumber);
-            } //Check if the input is a valid number and not just whitespace
-            else if (event.which === 8 && event.which === 46 && !$.isNumeric($(elem).val(formattedNumber))) {
-                alert("<?php echo get_phrase('non_number_error', "Error: Invalid input. Please enter a number.") ?>");
-                $(elem).val('');
+    //         //Add commas and check if after stripping off the commas
 
-            }
+    //         formattedNumber = formattedNumber.replace(/(\d)(?=(\d{3})+$)/g, '$1,');
 
-        });
-    }
+    //         if (!isNaN(parseFloat(formattedNumber))) {
+    //             $(elem).val(formattedNumber);
+    //         } //Check if the input is a valid number and not just whitespace
+    //         else if (event.which === 8 && event.which === 46 && !$.isNumeric($(elem).val(formattedNumber))) {
+    //             alert("<?php echo get_phrase('non_number_error', "Error: Invalid input. Please enter a number.") ?>");
+    //             $(elem).val('');
+
+    //         }
+
+    //     });
+    // }
 
     function copyRow() {
 
