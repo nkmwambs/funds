@@ -87,11 +87,17 @@ class Project_income_account_model extends MY_Model{
         $lookup_values = parent::lookup_values();
 
         if(!$this->session->system_admin){
-            $this->read_db->where(['fk_funder_id' => hash_id($this->id, 'decode')]);
+            $this->read_db->where(['project_id' => hash_id($this->id, 'decode')]);
             $this->read_db->select(array('project_id','project_name'));
             $lookup_values['project'] = $this->read_db->get('project')->result_array();
 
-            $this->read_db->where(['fk_funder_id' => hash_id($this->id, 'decode'), 'income_account_is_active' => 1]);
+            $funder_id = $this->read_db->select('fk_funder_id')
+            ->where(['project_id' => hash_id($this->id, 'decode')])
+            ->get('project')->row()->fk_funder_id;
+
+            // log_message('error', json_encode($funder_id));
+
+            $this->read_db->where(['fk_funder_id' => $funder_id, 'income_account_is_active' => 1]);
             $this->read_db->select(array('income_account_id','income_account_name'));
             $lookup_values['income_account'] = $this->read_db->get('income_account')->result_array();
         }

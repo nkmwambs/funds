@@ -67,10 +67,12 @@
 
     $("#budget_year").on('change',function(){
         const office_id = $("#fk_office_id").val();
+        const funder_id = $("#fk_office_id").val();
         const budget_year = $(this).val();
         const data = {
-            office_id:office_id,
-            budget_year:budget_year
+            office_id,
+            budget_year,
+            funder_id
         }
 
         const url = "<?=base_url();?>budget/get_office_budget_tags";

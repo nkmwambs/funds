@@ -890,12 +890,12 @@ private function list_budget_month_order($budget_id, $custom_year_start_date = "
     return  $budget_obj;
   }
 
-  function office_budget_records($office_id, $budget_year = '', $start_moth = ''){
+  function office_budget_records($office_id, $budget_year = '', $start_moth = '', $funder_id = 0){
     $office_budget_records = [];
 
     $this->read_db->select(array('budget.fk_office_id office_id', 'fk_account_system_id account_system_id', 'budget_year', 'budget_tag_id', 'budget_tag_level'));
     $this->read_db->join('budget_tag','budget_tag.budget_tag_id=budget.fk_budget_tag_id');
-    $this->read_db->where(array('budget.fk_office_id' => $office_id));
+    $this->read_db->where(array('budget.fk_office_id' => $office_id, 'fk_funder_id' => $funder_id));
 
     if($budget_year != ''){
       $this->read_db->where(array('budget_year' => $budget_year));
@@ -1042,29 +1042,37 @@ private function list_budget_month_order($budget_id, $custom_year_start_date = "
    * Await documentation
    */
 
-  function valid_budget_tags($office_id, $budget_year){
+  function valid_budget_tags($office_id, $budget_year, $funder_id = 0){
 
     $valid_budget_tags = [];
 
     $office = $this->get_office($office_id);
 
+    
     $default_custom_financial_year = $this->get_custom_financial_year($office_id, true);
-
+    
     $year_budget_records = [];
-
-    if(!empty($this->get_custom_financial_year($office_id))){
+    
+    $get_custom_financial_year = $this->get_custom_financial_year($office_id);
+    
+    if(!empty($get_custom_financial_year)){
       $month_number = date('n', strtotime($default_custom_financial_year['start_date']));
       $quarter_number = financial_year_quarter_months($month_number, $office_id)['quarter_number'];
       $condition = array('fk_account_system_id' => $office->account_system_id, 'budget_tag_level' => $quarter_number);
-      $year_budget_records = $this->office_budget_records($office_id, $budget_year, $default_custom_financial_year['start_month']);
+      $year_budget_records = $this->office_budget_records($office_id, $budget_year, $default_custom_financial_year['start_month'], $funder_id);
+      
+      // log_message('error', json_encode(compact('month_number','quarter_number', 'condition', 'year_budget_records')));
+
     }else{
       $condition = array('fk_account_system_id' => $office->account_system_id);
         
       if(!empty($default_custom_financial_year)){
-        $year_budget_records = $this->office_budget_records($office_id, $budget_year, $default_custom_financial_year['start_month']);
+        $year_budget_records = $this->office_budget_records($office_id, $budget_year, $default_custom_financial_year['start_month'], $funder_id);
       }else{
-        $year_budget_records = $this->office_budget_records($office_id, $budget_year);
+        $year_budget_records = $this->office_budget_records($office_id, $budget_year,'', $funder_id);
+        // log_message('error', json_encode($year_budget_records));
       }
+
     }
 
     // return $year_budget_records;

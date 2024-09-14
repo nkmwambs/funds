@@ -86,10 +86,6 @@ class Budget_item extends MY_Controller
 
   function result($id = ''){
     if($this->action == 'multi_form_add' || $this->action == 'edit'){
-
-    // if($this->action == 'multi_form_add'){
-
-    // }
     
     $result = [];
     $expense_accounts = [];
@@ -97,7 +93,7 @@ class Budget_item extends MY_Controller
     $income_account = [];
     $budget_limit_amount = 0;
     
-    $this->read_db->select(array('office_id','office_name','office_code','budget_year','office.fk_account_system_id account_system_id','budget_tag_level'));
+    $this->read_db->select(array('office_id','office_name','office_code','budget_year','fk_funder_id as funder_id','office.fk_account_system_id account_system_id','budget_tag_level'));
     $this->read_db->join('budget','budget.fk_office_id=office.office_id');
     $this->read_db->join('budget_tag','budget_tag.budget_tag_id=budget.fk_budget_tag_id');
 
@@ -123,12 +119,13 @@ class Budget_item extends MY_Controller
     
     $months = [];// month_order($office->office_id, $budget_id);
 
-    // log_message('error', json_encode($months));
+    // log_message('error', json_encode($office));
 
     // Get project allocations
     $budgeting_date = date('Y-m-d');
     $query_condition = "fk_office_id = ".$office->office_id." AND ((project_end_date >= '".$budgeting_date."' OR project_end_date LIKE '0000-00-00' OR project_end_date IS NULL) OR  project_allocation_extended_end_date >= '".$budgeting_date."')";
     $this->read_db->where($query_condition);
+    $this->read_db->where(['project.fk_funder_id' => $office->funder_id]);
     $this->read_db->select(array('project_allocation_id','project_allocation_name','project_name'));
     $this->read_db->join('project','project.project_id=project_allocation.fk_project_id');
     $this->read_db->join('project_income_account','project_income_account.fk_project_id=project.project_id');

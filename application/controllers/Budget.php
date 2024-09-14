@@ -618,8 +618,9 @@ class Budget extends MY_Controller
 
     $office_id = $post['office_id'];
     $budget_year = $post['budget_year'];
+    $funder_id = $post['funder_id'];
 
-    $valid_budget_tags = $this->budget_model->valid_budget_tags($office_id, $budget_year);
+    $valid_budget_tags = $this->budget_model->valid_budget_tags($office_id, $budget_year, $funder_id);
 
     echo json_encode($valid_budget_tags);
   }
