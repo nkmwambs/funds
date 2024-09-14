@@ -45,11 +45,13 @@ class Budget extends MY_Controller
     $this->read_db->join('month', 'month.month_id=budget_item_detail.fk_month_id');
     $this->read_db->where(array(
       'fk_office_id' => $budget_office->office_id,
-      'budget_year' => $budget_office->budget_year, 'budget_id' => hash_id($this->id, 'decode')
+      'budget_year' => $budget_office->budget_year, 'budget_id' => hash_id($this->id, 'decode'),
     ));
     $this->read_db->group_by(array('fk_month_id', 'expense_account_id', 'income_account_id'));
     $this->read_db->order_by('month_order ASC');
     $result_raw  = $this->read_db->get('budget')->result_object();
+
+    // log_message('error', json_encode(hash_id($this->id, 'decode')));
 
     $result = [];
 
@@ -275,6 +277,7 @@ class Budget extends MY_Controller
         
 
         $budget_summary = $this->budget_summary_result();
+        // log_message('error', json_encode($budget_summary));
         $result = array_merge($budget_header, $budget_summary);
         $result['budget_limits'] = $this->budget_limits($budget_header);
         $result['months'] = month_order($office->office_id, $budget_id);

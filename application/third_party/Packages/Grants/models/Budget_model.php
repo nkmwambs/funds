@@ -279,17 +279,18 @@ class Budget_model extends MY_Model
   //   }
   // }
 
-  function replicate_budget_limit($new_budget_array,$previous_budget_array){
+  function replicate_budget_limit($new_budget_array,$previous_budget_array, $funder_id){
     // Get Limits for the previous budget
     
     $budget_limits_data = [];
 
     $this->read_db->where(
       array(
-          'fk_budget_id' => $previous_budget_array['budget_id']
+          'fk_budget_id' => $previous_budget_array['budget_id'],
+          'budget.fk_funder_id' => $funder_id
         )
       );
-
+    $this->read_db->join('budget','budget.budget_id=budget_limit.fk_budget_id');
     $budget_limit_obj = $this->read_db->get('budget_limit');
 
     if($budget_limit_obj->num_rows() > 0){
@@ -346,7 +347,7 @@ class Budget_model extends MY_Model
     return $custom_financial_year_start_month;
   }
 
-  public function get_immediate_previous_budget($office_id, $current_budget_fy, $header_id, $start_month = '', $is_financial_year_switching = false)
+  public function get_immediate_previous_budget($office_id, $current_budget_fy, $header_id, $start_month = '', $is_financial_year_switching = false, $funder_id = 0)
   {
     // Get the budget tag level of the just previous budget
 
@@ -356,7 +357,7 @@ class Budget_model extends MY_Model
     $budget_fy_start_month_of_previous_budget = 7;
 
     $this->read_db->select(array('budget_tag_level', 'budget_id','budget_tag_id', 'fk_custom_financial_year_id'));
-    $this->read_db->where(array('budget.fk_office_id' => $office_id,'budget_id<' => $header_id));
+    $this->read_db->where(array('budget.fk_office_id' => $office_id,'budget_id<' => $header_id, 'budget.fk_funder_id' => $funder_id));
     
     $this->read_db->limit(1);
     $this->read_db->order_by('budget_id DESC');
@@ -463,6 +464,7 @@ class Budget_model extends MY_Model
     // Checking the bugdet tag level of the posted budget and retrive the budget record that has n-1 budget tag level
     // $budget_tag_id_of_new_budget = $post_array['fk_budget_tag_id'];
     $office_id = $post_array['fk_office_id'];
+    $funder_id = $post_array['fk_funder_id'];
     $current_budget_fy = $post_array['budget_year'];
     $previous_budget_id = 0;
     $previous_budget = [];
@@ -476,12 +478,12 @@ class Budget_model extends MY_Model
     
     if($is_financial_year_switching){
       $budget_start_date = $default_custom_financial_year['start_date'];
-      $previous_budget = $this->get_immediate_previous_budget($office_id, $current_budget_fy, $header_id, $custom_financial_year_start_month, $is_financial_year_switching);
+      $previous_budget = $this->get_immediate_previous_budget($office_id, $current_budget_fy, $header_id, $custom_financial_year_start_month, $is_financial_year_switching, $funder_id);
       // log_message('error', "Switch FY");
       // log_message('error', json_encode($previous_budget));
     }else{
-      $previous_budget = $this->get_immediate_previous_budget($office_id, $current_budget_fy, $header_id, $custom_financial_year_start_month);
-      $this->replicate_budget_limit($post_array, $previous_budget);
+      $previous_budget = $this->get_immediate_previous_budget($office_id, $current_budget_fy, $header_id, $custom_financial_year_start_month, false, $funder_id);
+      $this->replicate_budget_limit($post_array, $previous_budget, $funder_id);
       // log_message('error', "Standard FY");
       // log_message('error', json_encode($previous_budget));
     }
