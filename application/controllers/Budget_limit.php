@@ -279,6 +279,7 @@ class Budget_limit extends MY_Controller
     if($custom_financial_year_id > 0){
       $condition = array('budget_year' => $budget_year, 'fk_office_id' => $office_id, 'fk_custom_financial_year_id' => $custom_financial_year_id);
     }
+    $this->read_db->where(['budget.fk_funder_id' => $funder_id]);
     $this->read_db->where($condition);
     $years_office_budget_obj = $this->read_db->get('budget');
 

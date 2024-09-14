@@ -113,8 +113,9 @@ class Budget_model extends MY_Model
 
   function action_before_insert($post_array){
     $office_id  = $post_array['header']['fk_office_id'];
+    $funder_id  = $post_array['header']['fk_funder_id'];
 
-    $current_unsubmitted_budget = $this->get_current_unsigned_off_budget($office_id);
+    $current_unsubmitted_budget = $this->get_current_unsigned_off_budget($office_id, $funder_id);
 
     if(!empty($current_unsubmitted_budget)){
       return ['message' => get_phrase('has_unsigned_off_budget','Failure to create budget due to unsigned off previous budgets')];
@@ -1140,13 +1141,13 @@ private function list_budget_month_order($budget_id, $custom_year_start_date = "
    * @return array Last unsubmitted budget
    */
 
-   function get_current_unsigned_off_budget(int $office_id): array {
+   function get_current_unsigned_off_budget(int $office_id, $funder_id): array {
 
     $budgets = [];
 
     $max_approval_ids = $this->general_model->get_max_approval_status_id('budget', [$office_id]);
     
-    $this->read_db->where(array('budget.fk_office_id' => $office_id));
+    $this->read_db->where(array('budget.fk_office_id' => $office_id, 'fk_funder_id' => $funder_id));
     $this->read_db->where_not_in('budget.fk_status_id', $max_approval_ids);
     $this->read_db->select(array('budget_id','budget_tag_id','budget_year','budget_tag_name','status_name'));
     $this->read_db->join('budget_tag','budget_tag.budget_tag_id=budget.fk_budget_tag_id');

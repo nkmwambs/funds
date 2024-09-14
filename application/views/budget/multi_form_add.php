@@ -199,13 +199,15 @@
 
     $('#fk_budget_tag_id').on('change', function () {
         const office_id = $('#fk_office_id').val()
+        const funder_id = $('#fk_funder_id').val()
         const budget_year = $('#budget_year').val()
         const budget_tag_id = $(this).val()
         const url = '<?=base_url();?>/budget_limit/get_set_budget_limit'
         const data = {
             office_id,
             budget_year,
-            budget_tag_id
+            budget_tag_id,
+            funder_id
         }
 
         $.post(url, data, function (resp){
