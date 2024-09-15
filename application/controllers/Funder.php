@@ -66,9 +66,11 @@ class Funder extends MY_Controller
 
   function master_table(){
 
-    $this->read_db->select(array('funder_track_number','funder_name',
-    'funder_description','CONCAT(user_firstname," ", user_lastname) as funder_created_by',
-    'funder_created_date','account_system_name'));
+    // $this->read_db->select(array('funder_track_number','funder_name',
+    // 'funder_description','CONCAT(user_firstname," ", user_lastname) as funder_created_by',
+    // 'funder_created_date','account_system_name'));
+    $this->read_db->select($this->funder_model->master_table_visible_columns());
+    $this->read_db->select(['CONCAT(user_firstname," ", user_lastname) as funder_created_by']);
     $this->read_db->join('account_system','account_system.account_system_id=funder.fk_account_system_id');
     $this->read_db->join('user','user.user_id=funder.funder_created_by');
     $this->read_db->where(array('funder_id'=>hash_id($this->id,'decode')));
@@ -78,16 +80,8 @@ class Funder extends MY_Controller
   }
 
   function columns(){
-    $columns = [
-      'funder_id',
-      'funder_track_number',
-      'funder_name',
-      'funder_description',
-      'funder_created_date',
-      'funder_last_modified_date',
-      'account_system_name'
-    ];
-
+    $columns = $this->funder_model->list_table_visible_columns();
+    array_unshift($columns, 'funder_id');
     return $columns;
   }
 
@@ -213,6 +207,7 @@ class Funder extends MY_Controller
       $funder_id = array_shift($funder);
       $funder_track_number = $funder['funder_track_number'];
       $funder['funder_track_number'] = '<a href="'.base_url().$this->controller.'/view/'.hash_id($funder_id).'">'.$funder_track_number.'</a>';
+      $funder['funder_is_active'] =  $funder['funder_is_active'] ? get_phrase('yes') : get_phrase('no');
       $row = array_values($funder);
 
       $result[$cnt] = $row;

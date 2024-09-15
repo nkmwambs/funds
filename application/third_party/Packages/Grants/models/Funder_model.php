@@ -36,11 +36,17 @@ class Funder_model extends MY_Model
 
 
 
-    public function master_table_visible_columns(){}
+    public function master_table_visible_columns(){
+      return array('funder_name', 'funder_code', 'funder_is_active', 'funder_created_date', 'funder_last_modified_date', 'account_system_name');
+    }
 
-    public function master_table_hidden_columns(){}
+    public function master_table_hidden_columns(){
+      
+    }
 
-    public function list_table_visible_columns(){}
+    public function list_table_visible_columns(){
+      return array('funder_track_number', 'funder_name', 'funder_code', 'funder_description', 'funder_is_active','funder_created_date', 'account_system_name');
+    }
 
     public function list_table_hidden_columns(){}
 
@@ -49,7 +55,11 @@ class Funder_model extends MY_Model
     public function detail_list_table_hidden_columns(){}
 
     public function single_form_add_visible_columns(){
-      return array('funder_name','funder_description', 'funder_is_active', 'account_system_name');
+      return array('funder_name', 'funder_code','funder_description', 'funder_is_active', 'account_system_name');
+    }
+
+    public function edit_visible_columns(){
+      return array('funder_name', 'funder_code','funder_description', 'funder_is_active');
     }
 
     public function single_form_add_hidden_columns(){}

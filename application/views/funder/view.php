@@ -47,7 +47,15 @@ $columns = array_chunk(array_keys($header),$this->config->item('master_table_col
                         echo get_phrase($column);
                     ?>:</span> &nbsp;
                   <?php
-                    echo $column_value;
+                    if(str_contains($column, '_is_')){
+                      if($column_value == 1){
+                        echo get_phrase('yes');
+                      }else{
+                        echo get_phrase('no');
+                      }
+                    }else{
+                      echo $column_value;
+                    }
                   ?>
                 </td>
           <?php
