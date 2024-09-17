@@ -89,19 +89,19 @@ class Expense_account_model extends MY_Model
   function action_before_insert($post_array)
   {
 
-    $fk_income_account_id = $post_array['header']['fk_income_account_id'];
+    // $fk_income_account_id = $post_array['header']['fk_income_account_id'];
 
-    $expense_account = $this->grants_model->overwrite_field_value_on_post(
-      $post_array,
-      'expense_account',
-      'expense_account_is_active',
-      1,
-      0,
-      [
-        'fk_income_account_id' => $fk_income_account_id,
-        'expense_account_is_active' => 1
-      ]
-    );
+    // $expense_account = $this->grants_model->overwrite_field_value_on_post(
+    //   $post_array,
+    //   'expense_account',
+    //   'expense_account_is_active',
+    //   1,
+    //   0,
+    //   [
+    //     'fk_income_account_id' => $fk_income_account_id,
+    //     'expense_account_is_active' => 1
+    //   ]
+    // );
 
     $this->load->model('income_account_model');
     $this->load->model('funder_model');
@@ -110,9 +110,9 @@ class Expense_account_model extends MY_Model
     $funder = $this->funder_model->get_funder_by_id($income_account['fk_funder_id']);
     $funder_code = !empty($funder) ? $funder['funder_code'] : '';
 
-    $expense_account['header']['expense_account_code'] = $funder_code.'-'.return_sanitized_code($expense_account['header']['expense_account_code']);
+    $post_array['header']['expense_account_code'] = $funder_code.'-'.return_sanitized_code($post_array['header']['expense_account_code']);
 
-    return $expense_account;
+    return $post_array;
   }
 
   function get_all_active_expense_accounts(int $income_id, $fk_office_id)
@@ -200,7 +200,7 @@ class Expense_account_model extends MY_Model
       "expense_account_code",
       "expense_account_is_admin",
       "expense_vote_heads_category_name",
-      "expense_account_is_active",
+      // "expense_account_is_active",
       "expense_account_is_budgeted",
       "income_account_name"
     ];

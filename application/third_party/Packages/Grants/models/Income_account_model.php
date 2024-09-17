@@ -106,7 +106,7 @@ class Income_account_model extends MY_Model
       "income_account_name",
       "income_account_description",
       "income_account_code",
-      "income_account_is_active",
+      // "income_account_is_active",
       "income_account_is_budgeted",
       "funder_name",
       "income_vote_heads_category_name",
@@ -153,28 +153,28 @@ class Income_account_model extends MY_Model
   function action_before_insert($post_array)
   {
 
-    $fk_account_system_id = $post_array['header']['fk_account_system_id'];
+    // $fk_account_system_id = $post_array['header']['fk_account_system_id'];
 
-    $income_account = $this->grants_model->overwrite_field_value_on_post(
-      $post_array,
-      'income_account',
-      'income_account_is_active',
-      1,
-      0,
-      [
-        'fk_account_system_id' => $fk_account_system_id,
-        'income_account_is_active' => 1
-      ]
-    );
+    // $income_account = $this->grants_model->overwrite_field_value_on_post(
+    //   $post_array,
+    //   'income_account',
+    //   'income_account_is_active',
+    //   1,
+    //   0,
+    //   [
+    //     'fk_account_system_id' => $fk_account_system_id,
+    //     'income_account_is_active' => 1
+    //   ]
+    // );
 
     // Get funder code 
     $this->load->model('funder_model');
     $funder = $this->funder_model->get_funder_by_id($post_array['header']['fk_funder_id']);
     $funder_code = !empty($funder) ? $funder['funder_code'] : '';
 
-    $income_account['header']['income_account_code'] = $funder_code.'-'.return_sanitized_code($income_account['header']['income_account_code']);
+    $post_array['header']['income_account_code'] = $funder_code.'-'.return_sanitized_code($post_array['header']['income_account_code']);
 
-    return $income_account;
+    return $post_array;
   }
 
   function get_income_account_by_id($income_account_id){
