@@ -103,7 +103,14 @@ class Expense_account_model extends MY_Model
       ]
     );
 
-    $expense_account['header']['expense_account_code'] = return_sanitized_code($expense_account['header']['expense_account_code']);
+    $this->load->model('income_account_model');
+    $this->load->model('funder_model');
+
+    $income_account = $this->income_account_model->get_income_account_by_id($post_array['header']['fk_income_account_id']);
+    $funder = $this->funder_model->get_funder_by_id($income_account['fk_funder_id']);
+    $funder_code = !empty($funder) ? $funder['funder_code'] : '';
+
+    $expense_account['header']['expense_account_code'] = $funder_code.'-'.return_sanitized_code($expense_account['header']['expense_account_code']);
 
     return $expense_account;
   }

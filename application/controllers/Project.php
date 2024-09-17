@@ -156,9 +156,13 @@ class Project extends MY_Controller
       $this->read_db->where(array('project.fk_funder_id'=>$this->input->post('id')));
       
       if($this->session->context_definition['context_definition_level'] == 1){
-        $this->read_db->join('project_allocation','project_allocation.fk_project_id=project.project_id');
+        $this->read_db->join('project_allocation','project_allocation.fk_project_id=project.project_id','left');
         $office_ids = array_column($this->session->hierarchy_offices, 'office_id');
+
+        $this->read_db->group_start();
         $this->read_db->where_in('project_allocation.fk_office_id',$office_ids);
+        $this->read_db->or_where_in('funder.fk_office_id', $office_ids);
+        $this->read_db->group_end();
       }
     }
     

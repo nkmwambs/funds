@@ -20,6 +20,7 @@ class Income_account_model extends MY_Model
     $this->load->database();
   }
 
+
   function delete($id = null)
   {
   }
@@ -166,8 +167,18 @@ class Income_account_model extends MY_Model
       ]
     );
 
-    $income_account['header']['income_account_code'] = return_sanitized_code($income_account['header']['income_account_code']);
+    // Get funder code 
+    $this->load->model('funder_model');
+    $funder = $this->funder_model->get_funder_by_id($post_array['header']['fk_funder_id']);
+    $funder_code = !empty($funder) ? $funder['funder_code'] : '';
 
+    $income_account['header']['income_account_code'] = $funder_code.'-'.return_sanitized_code($income_account['header']['income_account_code']);
+
+    return $income_account;
+  }
+
+  function get_income_account_by_id($income_account_id){
+    $income_account = $this->read_db->get_where('income_account', array('income_account_id' => $income_account_id))->row_array();
     return $income_account;
   }
 

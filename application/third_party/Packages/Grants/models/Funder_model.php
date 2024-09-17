@@ -45,7 +45,7 @@ class Funder_model extends MY_Model
     }
 
     public function list_table_visible_columns(){
-      return array('funder_track_number', 'funder_name', 'funder_code', 'funder_description', 'funder_is_active','funder_created_date', 'account_system_name');
+      return array('funder_track_number', 'funder_name', 'funder_code','office_name', 'funder_description', 'funder_is_active','funder_created_date', 'account_system_name');
     }
 
     public function list_table_hidden_columns(){}
@@ -55,11 +55,11 @@ class Funder_model extends MY_Model
     public function detail_list_table_hidden_columns(){}
 
     public function single_form_add_visible_columns(){
-      return array('funder_name', 'funder_code','funder_description', 'funder_is_active', 'account_system_name');
+      return array('funder_name', 'funder_code','office_name','funder_description', 'funder_is_active', 'account_system_name');
     }
 
     public function edit_visible_columns(){
-      return array('funder_name', 'funder_code','funder_description', 'funder_is_active');
+      return array('funder_name', 'funder_code','funder_description', 'funder_is_active','office_name');
     }
 
     public function single_form_add_hidden_columns(){}
@@ -91,8 +91,38 @@ class Funder_model extends MY_Model
     public function list_table_where(){
 
       if(!$this->session->system_admin){
+        if($this->session->context_definition['context_definition_level'] == 1){
+          $this->read_db->where_in('fk_office_id', array_column($this->session->hierarchy_offices,'office_id'));
+        }
         $this->read_db->where(array('fk_account_system_id'=>$this->session->user_account_system_id));
       }
   
+    }
+
+    function lookup_values(){
+      $lookup_values = parent::lookup_values();
+
+      if (!$this->session->system_admin) {
+        $hierarchy_offices = array_column($this->session->hierarchy_offices, 'office_id');
+        $this->read_db->select(array('office_id', 'office_name'));
+        $this->read_db->where_in('office_id', $hierarchy_offices);
+        $lookup_values['office'] = $this->read_db->get('office')->result_array();
+      }
+
+      return $lookup_values;
+    }
+
+    function get_funder_by_id($funder_id){
+      // Get funder code 
+      $this->read_db->where(['funder_id' => $funder_id]);
+      $funder_obj = $this->read_db->get('funder');
+
+      $funder = [];
+
+      if($funder_obj->num_rows() > 0){
+        $funder = $funder_obj->row_array();
+      }
+
+      return $funder;
     }
 }

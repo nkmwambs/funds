@@ -88,26 +88,26 @@ class Project_model extends MY_Model
     function action_before_insert($post_array){
 
       $funder_id = $post_array['header']['fk_funder_id'];
-        
-      $project = $this->grants_model->overwrite_field_value_on_post(
-          $post_array,
-          'project',
-          'project_is_default',
-          1,
-          0,
-          [
-              'fk_funder_id'=>$funder_id,
-              'project_is_default'=>1
-          ]
-      );
+      // $project = $post_array['header'];
+      // $project = $this->grants_model->overwrite_field_value_on_post(
+      //     $post_array,
+      //     'project',
+      //     'project_is_default',
+      //     1,
+      //     0,
+      //     [
+      //         'fk_funder_id'=>$funder_id,
+      //         'project_is_default'=>1
+      //     ]
+      // );
 
-      $project['header']['project_end_date'] = $project['header']['project_end_date'] == '' ? NULL : $project['header']['project_end_date'];
-      $project['header']['project_cost'] =  $project['header']['project_cost'] == '' ? 0 : $project['header']['project_cost'];
+      $post_array['header']['project_end_date'] = $post_array['header']['project_end_date'] == '' ? NULL : $post_array['header']['project_end_date'];
+      // $project['header']['project_cost'] =  $project['header']['project_cost'] == '' ? 0 : $project['header']['project_cost'];
 
       //This line is added by Onduso 28/7/2022
-      $project['header']['project_code']=return_sanitized_code($project['header']['project_code']);
+      $post_array['header']['project_code']=return_sanitized_code($post_array['header']['project_code']);
   
-      return $project;
+      return $post_array;
     }
     /**
    * transaction_validate_duplicates_columns
@@ -127,7 +127,9 @@ class Project_model extends MY_Model
 
     public function detail_list_table_hidden_columns(){}
 
-    public function single_form_add_visible_columns(){}
+    public function single_form_add_visible_columns(){
+      return ['project_name','project_description','project_code','project_start_date','project_end_date','funder_name','funding_status_name'];
+    }
 
     public function single_form_add_hidden_columns(){}
 

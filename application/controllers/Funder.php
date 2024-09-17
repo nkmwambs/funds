@@ -136,11 +136,14 @@ class Funder extends MY_Controller
     }
     
     if(!$this->session->system_admin){
+      if($this->session->context_definition['context_definition_level'] == 1){
+        $this->read_db->where_in('fk_office_id', array_column($this->session->hierarchy_offices,'office_id'));
+      }
       $this->read_db->where(array('funder.fk_account_system_id'=>$this->session->user_account_system_id));
     }
 
     $this->read_db->select($columns);
-    //$this->read_db->join('status','status.status_id=bank.fk_status_id');
+    $this->read_db->join('office','office.office_id=funder.fk_office_id','left');
     $this->read_db->join('account_system','account_system.account_system_id=funder.fk_account_system_id');
 
     $result_obj = $this->read_db->get('funder');
@@ -181,10 +184,13 @@ class Funder extends MY_Controller
     }
     
     if(!$this->session->system_admin){
+      if($this->session->context_definition['context_definition_level'] == 1){
+        $this->read_db->where_in('fk_office_id', array_column($this->session->hierarchy_offices,'office_id'));
+      }
       $this->read_db->where(array('funder.fk_account_system_id'=>$this->session->user_account_system_id));
     }
 
-    //$this->read_db->join('status','status.status_id=bank.fk_status_id');
+    $this->read_db->join('office','office.office_id=funder.fk_office_id','left');
     $this->read_db->join('account_system','account_system.account_system_id=funder.fk_account_system_id');
     
 
