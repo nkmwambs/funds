@@ -108,7 +108,7 @@ class Budget extends MY_Controller
     $this->read_db->select(array('funder_id', 'funder_name', 'project_allocation_id', 'project_allocation_name'));
     $this->read_db->join('project_allocation', 'project_allocation.fk_project_id=project.project_id');
     $this->read_db->join('funder', 'funder.funder_id=project.fk_funder_id');
-    $this->read_db->where(array('fk_office_id' => $office_id));
+    $this->read_db->where(array('project_allocation.fk_office_id' => $office_id));
     $projects = $this->read_db->get('project')->result_object();
 
     $data = [];

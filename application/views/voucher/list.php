@@ -71,7 +71,7 @@ alert('Yes');
             'pdfHtml5',
         ],
         pagingType: "full_numbers",
-        // stateSave:true,
+        stateSave:true,
         pageLength: 10,
         order: [],
         serverSide: true,
@@ -86,15 +86,15 @@ alert('Yes');
     });
 
 
-    $("#datatable_filter").html(search_box());
+    // $("#datatable_filter").html(search_box());
 
     //});
 
-    function search_box() {
-        return '<?= get_phrase('search'); ?>: <input type="form-control" onchange="search(this)" id="search_box" aria-controls="datatable" />';
-    }
+    // function search_box() {
+    //     return '<?= get_phrase('search'); ?>: <input type="form-control" onchange="search(this)" id="search_box" aria-controls="datatable" />';
+    // }
 
-    function search(el) {
-        datatable.search($(el).val()).draw();
-    }
+    // function search(el) {
+    //     datatable.search($(el).val()).draw();
+    // }
 </script>

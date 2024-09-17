@@ -119,7 +119,7 @@
         var url = "<?=base_url();?><?=$this->controller;?>/show_list";
         const datatable = $("#datatable").DataTable({
             // dom: 'lBfrtip',
-            dom: 'QlBtip', //'QBfrtip' lrt
+            dom: 'QlBtip', //lBfrtip
             buttons: [
                 {
                     extend: 'excel',
@@ -214,7 +214,7 @@
             window.location.reload()
         }
 
-        $("#datatable_filter").html(search_box());
+        // $("#datatable_filter").html(search_box());
 
         // $('a.toggle-vis').each(function (i,el) {
         //     var column = datatable.column($(el).attr('data-column'));

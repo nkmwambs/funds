@@ -568,6 +568,16 @@ class Voucher extends MY_Controller
     } elseif ($this->action == 'multi_form_add') {
       $result = [];
 
+      // Get transacting offices
+      $hierarchy_offices = $this->session->hierarchy_offices;
+      $transacting_offices = array_filter($hierarchy_offices, function ($office) {
+          if(!$office['office_is_readonly']){
+              return $office;  
+          }
+      });
+
+      
+      $result['transacting_offices'] = $transacting_offices;
       $result['office_has_request'] = $this->request_model->get_office_request_count() == 0 ? false : true;
 
       return $result;

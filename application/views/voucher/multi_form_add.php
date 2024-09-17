@@ -11,16 +11,6 @@
 
 <?php
 extract($result);
-
-$hierarchy_offices = $this->session->hierarchy_offices;
-
-$transacting_offices = array_filter($hierarchy_offices, function ($office) {
-    if(!$office['office_is_readonly']){
-        return $office;  
-    }
-});
-
-// echo json_encode($transacting_offices);
 ?>
 
 
