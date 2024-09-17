@@ -127,7 +127,7 @@ class Budget_model extends MY_Model
   public function lookup_values()
   {
 
-    $lookup_values = [];
+    $lookup_values = parent::lookup_values();
 
     if (!$this->session->system_admin) {
       $this->read_db->where_in('office_id', array_column($this->session->hierarchy_offices, 'office_id'));
@@ -161,7 +161,13 @@ class Budget_model extends MY_Model
       $this->read_db->where(array('fk_account_system_id' => $this->session->user_account_system_id, 'budget_tag_is_active' => 1));
       $lookup_values['budget_tag'] = $this->read_db->get('budget_tag')->result_array();
 
+      $this->read_db->join('project','project.fk_funder_id=funder.funder_id');
+      $this->read_db->join('project_allocation','project_allocation.fk_project_id=project.project_id','left');
       $this->read_db->where(['funder_is_active' => 1]);
+      $this->read_db->group_start();
+      $this->read_db->where_in('funder.fk_office_id', array_column($this->session->hierarchy_offices, 'office_id'));
+      $this->read_db->or_where_in('project_allocation.fk_office_id', array_column($this->session->hierarchy_offices, 'office_id'));
+      $this->read_db->group_end();
       $lookup_values['funder'] = $this->read_db->get('funder')->result_array();
     }
 
