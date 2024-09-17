@@ -12,14 +12,15 @@
 <?php
 extract($result);
 
-// $this->read_db->select(array('contra_account_id as account_id', 'contra_account_name as account_name', 'contra_account_code as account_code'));
-//       $this->read_db->join('voucher_type_effect', 'voucher_type_effect.voucher_type_effect_id=contra_account.fk_voucher_type_effect_id');
-//       $this->read_db->join('office_bank', 'office_bank.office_bank_id=contra_account.fk_office_bank_id');
-//       $this->read_db->where(['fk_account_system_id' => 3, 'voucher_type_effect_code' => 'bank_contra','office_bank_is_active' => 1,'office_bank_id' => 2]);
-    
-//       $accounts_obj = $this->read_db->get('contra_account')->num_rows();
+$hierarchy_offices = $this->session->hierarchy_offices;
 
-//       print_r($accounts_obj);
+$transacting_offices = array_filter($hierarchy_offices, function ($office) {
+    if(!$office['office_is_readonly']){
+        return $office;  
+    }
+});
+
+// echo json_encode($transacting_offices);
 ?>
 
 
@@ -58,7 +59,7 @@ extract($result);
                         <select class='form-control required' id='office' name='fk_office_id'>
                             <option value=""><?= get_phrase('select_office'); ?></option>
                             <?php
-                            foreach ($this->session->hierarchy_offices as $office) {
+                            foreach ($transacting_offices as $office) {
                                 if (!$office['office_is_active']) continue;
                             ?>
                                 <option value="<?= $office['office_id']; ?>"><?= $office['office_name']; ?></option>

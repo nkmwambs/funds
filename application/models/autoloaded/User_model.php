@@ -563,7 +563,7 @@ class User_model extends MY_Model
     //   ['office_id' => 101, 'office_name' => 'Test Office 2']
     // ];
 
-    $this->read_db->select(array('office_id','office_name'));
+    $this->read_db->select(array('office_id','office_name','office_is_readonly'));
     $this->read_db->join('office','office.office_id=office_user.fk_office_id');
     $this->read_db->where(array('office_user.fk_user_id' => $user_id, 'office_user_is_active' => 1));
     $offices_obj = $this->read_db->get('office_user');
@@ -595,7 +595,7 @@ class User_model extends MY_Model
 
         $office_group_ids = array_column($office_group_ids_array, 'fk_office_group_id');
 
-        $this->read_db->select(array('office_id', 'office_name', "office_is_active"));
+        $this->read_db->select(array('office_id', 'office_name', "office_is_active",'office_is_readonly'));
         $this->read_db->join('office', 'office.office_id=office_group_association.fk_office_id');
         $this->read_db->where_in('fk_office_group_id', $office_group_ids);
         $office_group_association_obj = $this->read_db->get('office_group_association');
@@ -641,7 +641,7 @@ class User_model extends MY_Model
     $level_five_context_table = isset($contexts[4]) ? 'context_' . $contexts[4] : null; //region
     $level_six_context_table = isset($contexts[5]) ? 'context_' . $contexts[5] : null; //global
 
-    $this->db->select(array('office_id', 'office_name', 'office_is_active'));
+    $this->db->select(array('office_id', 'office_name', 'office_is_active','office_is_readonly'));
 
 
     if ($contexts[0] != null && $looping_context == $contexts[0]) { // center
