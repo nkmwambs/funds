@@ -67,7 +67,7 @@
 
     $("#budget_year").on('change',function(){
         const office_id = $("#fk_office_id").val();
-        const funder_id = $("#fk_office_id").val();
+        const funder_id = $("#fk_funder_id").val();
         const budget_year = $(this).val();
         const data = {
             office_id,

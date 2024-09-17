@@ -894,9 +894,17 @@ private function list_budget_month_order($budget_id, $custom_year_start_date = "
   }
 
   function office_budget_records($office_id, $budget_year = '', $start_moth = '', $funder_id = 0){
+    // log_message('error', json_encode(compact('office_id', 'budget_year', 'start_moth','funder_id')));
     $office_budget_records = [];
 
-    $this->read_db->select(array('budget.fk_office_id office_id', 'fk_account_system_id account_system_id', 'budget_year', 'budget_tag_id', 'budget_tag_level'));
+    $this->read_db->select(
+        [
+        'budget.fk_office_id office_id', 
+        'fk_account_system_id account_system_id', 
+        'budget_year', 'budget_tag_id', 
+        'budget_tag_level'
+      ]
+    );
     $this->read_db->join('budget_tag','budget_tag.budget_tag_id=budget.fk_budget_tag_id');
     $this->read_db->where(array('budget.fk_office_id' => $office_id, 'fk_funder_id' => $funder_id));
 
@@ -1046,7 +1054,7 @@ private function list_budget_month_order($budget_id, $custom_year_start_date = "
    */
 
   function valid_budget_tags($office_id, $budget_year, $funder_id = 0){
-
+    // log_message('error', json_encode(compact('budget_year','office_id','funder_id')));
     $valid_budget_tags = [];
 
     $office = $this->get_office($office_id);

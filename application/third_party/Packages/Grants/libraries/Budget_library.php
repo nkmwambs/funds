@@ -30,9 +30,10 @@ class Budget_library extends Grants
 
     $fields['budget_year']['field_type'] = 'select';
 
-    foreach($year_range as $year){
-      $fields['budget_year']['options'][$year] = 'FY'.$year;
-    }
+    // foreach($year_range as $year){
+      $fields['budget_year']['options'][''] = get_phrase('select a valid year');
+    // }
+    
     return $fields;
   }
 
