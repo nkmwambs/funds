@@ -135,19 +135,8 @@ class Cheque_book extends MY_Controller
       $result['show_add_button'] = true;
     }
     elseif($this->action=='single_form_add'){
-      // $user_offices=$this->user_model->user_hierarchy_offices($this->session->user_id, true);
-
-      // $user_context_office=[];
-
-      // foreach( $user_offices as  $user_office){
-      //   $user_context_office=$user_office;
-      // }
-      // $office_ids=array_column($user_context_office, 'office_id');
-      // $this->load->model('office_bank_model');
-
-      $office_ids = array_column($this->session->hierarchy_offices, 'office_id');
-      //$result['offices']=   $office_ids;
-      
+      $user_offices = $this->user_model->direct_user_offices($this->session->user_id, $this->session->context_definition['context_definition_name']);
+      $office_ids = array_column($user_offices, 'office_id');
       $result['office_banks']=$this->cheque_book_model->retrieve_office_bank($office_ids);
     }
     

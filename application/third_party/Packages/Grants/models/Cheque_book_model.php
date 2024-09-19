@@ -201,7 +201,7 @@ class Cheque_book_model extends MY_Model
 
         $this->read_db->select(array('office_bank_id', 'office_bank_name'));
         $this->read_db->where_in('fk_office_id', $office_ids);
-        $this->read_db->where(['office_bank_is_active' => 1]);
+        $this->read_db->where(['office_bank_is_active' => 1, 'office_bank_is_default' => 1]);
         $office_banks = $this->read_db->get('office_bank')->result_array();
 
         //Get bank_office_ids

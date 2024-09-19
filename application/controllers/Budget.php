@@ -389,6 +389,8 @@ class Budget extends MY_Controller
  */
   function get_budgets(){
 
+    $user_offices = $this->user_model->direct_user_offices($this->session->user_id, $this->session->context_definition['context_definition_name']);
+
     $columns = $this->columns();
     $search_columns = array_column(alias_columns($columns),'query_columns');
 
@@ -438,11 +440,11 @@ class Budget extends MY_Controller
     
     // log_message('error', json_encode($columns));
 
-    $user_offices = array_filter($this->session->hierarchy_offices, function($office){
-      if($office['context_definition_id'] == $this->session->context_definition['context_definition_level']){
-        return $office;
-      }
-    });
+    // $user_offices = array_filter($this->session->hierarchy_offices, function($office){
+    //   if($office['context_definition_id'] == $this->session->context_definition['context_definition_level']){
+    //     return $office;
+    //   }
+    // });
 
     $this->read_db->select($columns);
     $this->read_db->join('budget_tag','budget_tag.budget_tag_id=budget.fk_budget_tag_id');
@@ -451,7 +453,10 @@ class Budget extends MY_Controller
     $this->read_db->join('custom_financial_year','custom_financial_year.custom_financial_year_id=budget.fk_custom_financial_year_id', 'LEFT');
     $this->read_db->join('month','month.month_number=custom_financial_year.custom_financial_year_start_month', 'LEFT');
     $this->read_db->join('funder','funder.funder_id=budget.fk_funder_id');
+    $this->read_db->group_start();
     $this->read_db->where_in('budget.fk_office_id',array_column($user_offices,'office_id'));
+    $this->read_db->or_where_in('funder.fk_office_id',array_column($user_offices,'office_id'));
+    $this->read_db->group_end();
     $result_obj = $this->read_db->get('budget');
     
     $results = [];
