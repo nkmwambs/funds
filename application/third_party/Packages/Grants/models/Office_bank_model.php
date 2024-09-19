@@ -34,6 +34,27 @@ class Office_bank_model extends MY_Model
     return array('office','bank');
   }
 
+  public function lookup_values(){
+    $lookup_values = parent::lookup_values();
+
+    if(!$this->session->system_admin){
+
+      $user_offices = $this->user_model->direct_user_offices($this->session->user_id, $this->session->context_definition['context_definition_name']);
+
+      $this->read_db->select(array('funder_id', 'funder_name'));
+      $this->read_db->where(['funder_is_active' => 1]);
+      // $this->read_db->group_start();
+      // $this->read_db->where_in('project_allocation.fk_office_id', array_column($user_offices, 'office_id'));
+      // $this->read_db->where_in('office_bank.fk_funder_id', array_column($user_offices, 'office_id'));
+      // $this->read_db->group_end();
+      // $this->read_db->join('office_bank','office_bank.fk_funder_id=funder.funder_id');
+      // $this->read_db->join('project_allocation','project_allocation.fk_project_id=project.project_id');
+      $lookup_values['funder'] = $this->read_db->get('funder')->result_array();
+    }
+
+    return $lookup_values;
+  }
+
   public function detail_tables(){
     $detail_tables = ['cheque_book'];
 
@@ -48,13 +69,26 @@ class Office_bank_model extends MY_Model
 
     public function master_table_hidden_columns(){}
 
-    public function list_table_visible_columns(){}
+    public function detail_list_table_where()
+    {
+      // if (!$this->session->system_admin) {
+        $user_offices = $this->user_model->direct_user_offices($this->session->user_id, $this->session->context_definition['context_definition_name']);
+
+        $this->read_db->where_in('office_bank.fk_office_id', array_column($user_offices, 'office_id'));
+        // $this->read_db->where_not_in('role_id', $this->session->role_ids);
+      // }
+    }
+
+    public function list_table_visible_columns(){
+      return ['office_bank_track_number','office_bank_name','office_bank_is_active',
+      'office_bank_account_number','office_name','funder_name','office_bank_chequebook_size','office_bank_is_active','office_bank_is_default'];
+    }
 
     public function list_table_hidden_columns(){}
 
     public function detail_list_table_visible_columns(){
       return ['office_bank_track_number','office_bank_name','office_bank_is_active',
-      'office_bank_account_number','office_name','bank_name','office_bank_chequebook_size','office_bank_is_default','status_name','approval_name'];
+      'office_bank_account_number','office_name','funder_name','office_bank_chequebook_size','office_bank_is_default'];
     }
 
     public function detail_list_table_hidden_columns(){}
@@ -64,8 +98,8 @@ class Office_bank_model extends MY_Model
         'office_name',
         'office_bank_name',
         'bank_name',
+        'funder_name',
         'office_bank_account_number',
-        // 'office_bank_is_default',
         'office_bank_chequebook_size'
       ];
     }
@@ -97,12 +131,13 @@ class Office_bank_model extends MY_Model
       // Always make a new office bank active and default
       $post_array['header']['office_bank_is_default'] = 1;
       $post_array['header']['office_bank_is_active'] = 1;
-      $office_id = $post_array['header']['fk_office_id'];
 
+      $office_id = $post_array['header']['fk_office_id'];
+      $funder_id = $post_array['header']['fk_funder_id'];
 
       // Disallow having 2 default banks per office
       //if($office_bank_is_default == 1){
-        $this->make_exisiting_office_default_accounts_not_default($office_id);
+        $this->make_exisiting_office_default_accounts_not_default($office_id, $funder_id);
       //}
    
       return $post_array;
@@ -113,6 +148,7 @@ class Office_bank_model extends MY_Model
       $office_bank_id = hash_id($this->id, 'decode');
       $office_bank_is_default = $post_array['header']['office_bank_is_default'];
       $office_id = $post_array['header']['fk_office_id'];
+      $funder_id = $post_array['header']['fk_funder_id'];
       $office_bank_id = hash_id($this->id,'decode');
       $office_bank_is_active = $post_array['header']['office_bank_is_active'];
 
@@ -149,7 +185,7 @@ class Office_bank_model extends MY_Model
 
       // Disallow having 2 default banks per office
       if($office_bank_is_default == 1){
-        $this->make_exisiting_office_default_accounts_not_default($office_id);
+        $this->make_exisiting_office_default_accounts_not_default($office_id, $funder_id);
       }
 
       // Disallow editing bank name for an already used office bank account
@@ -216,10 +252,10 @@ class Office_bank_model extends MY_Model
   }
 
 
-    function make_exisiting_office_default_accounts_not_default($office_id){
+    function make_exisiting_office_default_accounts_not_default($office_id, $funder_id){
 
       $data['office_bank_is_default'] = 0;
-      $this->write_db->where(array('fk_office_id' => $office_id, 'office_bank_is_default' => 1));
+      $this->write_db->where(array('fk_office_id' => $office_id, 'office_bank_is_default' => 1, 'fk_funder_id' => $funder_id));
       $this->write_db->update('office_bank', $data);
     }
 

@@ -161,13 +161,17 @@ class Budget_model extends MY_Model
       $this->read_db->where(array('fk_account_system_id' => $this->session->user_account_system_id, 'budget_tag_is_active' => 1));
       $lookup_values['budget_tag'] = $this->read_db->get('budget_tag')->result_array();
 
+      $user_offices = array_filter($this->session->hierarchy_offices, function($office){
+        if($office['context_definition_id'] == $this->session->context_definition['context_definition_level']){
+          return $office;
+        }
+      });
+
       $this->read_db->join('project','project.fk_funder_id=funder.funder_id');
       $this->read_db->join('project_allocation','project_allocation.fk_project_id=project.project_id','left');
-      $this->read_db->where(['funder_is_active' => 1]);
-      $this->read_db->group_start();
-      $this->read_db->where_in('funder.fk_office_id', array_column($this->session->hierarchy_offices, 'office_id'));
-      $this->read_db->or_where_in('project_allocation.fk_office_id', array_column($this->session->hierarchy_offices, 'office_id'));
-      $this->read_db->group_end();
+      // Also filter by allocation extended date and project end date
+      $this->read_db->where(['funder_is_active' => 1, 'project_allocation_is_active' => 1]);
+      $this->read_db->where_in('project_allocation.fk_office_id', array_column($user_offices, 'office_id'));
       $lookup_values['funder'] = $this->read_db->get('funder')->result_array();
     }
 
@@ -200,9 +204,23 @@ class Budget_model extends MY_Model
 
   function list_table_where()
   {
-    //print_r($this->session->hierarchy_offices); exit();
+    
+    $user_offices = array_filter($this->session->hierarchy_offices, function($office){
+      if($office['context_definition_id'] == $this->session->context_definition['context_definition_level']){
+        return $office;
+      }
+    });
+
+    // log_message('error', json_encode($user_offices));
+    // $this->read_db->join('funder','funder.funder_id=budget.fk_funder_id');
+    // $this->read_db->join('project','project.fk_funder_id=funder.funder_id');
+    // $this->read_db->join('project_allocation','project_allocation.fk_project_id=project.project_id','left');
+    // // Also filter by allocation extended date and project end date
+    // $this->read_db->where(['funder_is_active' => 1, 'project_allocation_is_active' => 1]);
+    // $this->read_db->where_in('project_allocation.fk_office_id', array_column($user_offices, 'office_id'));
+
     // Only list requests from the users' hierachy offices
-    $this->read_db->where_in($this->controller . '.fk_office_id', array_column($this->session->hierarchy_offices, 'office_id'));
+    $this->read_db->where_in($this->controller . '.fk_office_id', array_column($user_offices, 'office_id'));
   }
 
   function transaction_validate_duplicates_columns()

@@ -1677,3 +1677,16 @@ if (!function_exists('str_contains')) {
         return empty($needle) || strpos($haystack, $needle) !== false;
     }
 }
+
+if(!function_exists('transacting_offices')){
+    function transacting_offices($hierarchy_offices){
+      $transacting_offices = array_filter($hierarchy_offices, function ($office) {
+          if(!$office['office_is_readonly']){
+              return $office;  
+          }
+      });
+
+
+      return $transacting_offices;
+    }
+}

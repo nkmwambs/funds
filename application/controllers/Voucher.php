@@ -569,14 +569,15 @@ class Voucher extends MY_Controller
       $result = [];
 
       // Get transacting offices
-      $hierarchy_offices = $this->session->hierarchy_offices;
-      $transacting_offices = array_filter($hierarchy_offices, function ($office) {
-          if(!$office['office_is_readonly']){
-              return $office;  
-          }
-      });
+      // $hierarchy_offices = $this->session->hierarchy_offices;
+      // $transacting_offices = array_filter($hierarchy_offices, function ($office) {
+      //     if(!$office['office_is_readonly']){
+      //         return $office;  
+      //     }
+      // });
 
-      
+      $transacting_offices = $this->user_model->direct_user_offices($this->session->user_id, $this->session->context_definition['context_definition_name']);
+      log_message('error', json_encode($transacting_offices));
       $result['transacting_offices'] = $transacting_offices;
       $result['office_has_request'] = $this->request_model->get_office_request_count() == 0 ? false : true;
 

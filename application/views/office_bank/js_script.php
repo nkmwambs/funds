@@ -11,7 +11,7 @@
         $('#fk_office_id').on('change', function() {
             const office_id = $('#fk_office_id').val();
             const url = '<?=base_url();?>office_bank/income_account_requiring_allocation/' + office_id;
-            const count_active_office_banks_url = '<?=base_url();?>office_bank/count_active_office_banks/' + office_id
+            // const count_active_office_banks_url = '<?=base_url();?>office_bank/count_active_office_banks/' + office_id
 
 
             $.get(url, function (response) {
@@ -33,14 +33,14 @@
                 }else{
                     $(".save, .save_new").removeClass('disabled');
 
-                    $.get(count_active_office_banks_url, function (count_active_office_banks) {
-                        // alert(count_active_office_banks)
-                        if(count_active_office_banks > 0){
-                            $('#office_bank_conditions').removeClass('hidden');
-                            $('.save, .save_new').addClass('disabled')
-                            alert('<?=get_phrase('notify_user_to_refer_office_bank_condition','Please confirm by checking the condition boxes that will appear above this form. These conditions are required to be met before you go ahead with creating the office bank. Click "Ok" to see the conditions');?>');
-                        }
-                    })
+                    // $.get(count_active_office_banks_url, function (count_active_office_banks) {
+                    //     // alert(count_active_office_banks)
+                    //     if(count_active_office_banks > 0){
+                    //         $('#office_bank_conditions').removeClass('hidden');
+                    //         $('.save, .save_new').addClass('disabled')
+                    //         alert('<?=get_phrase('notify_user_to_refer_office_bank_condition','Please confirm by checking the condition boxes that will appear above this form. These conditions are required to be met before you go ahead with creating the office bank. Click "Ok" to see the conditions');?>');
+                    //     }
+                    // })
                 }
             })
 

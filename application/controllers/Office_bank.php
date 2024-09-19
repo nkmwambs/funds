@@ -155,6 +155,7 @@ class Office_bank extends MY_Controller
   }
 
   function get_office_banks(){
+    $user_offices = $this->user_model->direct_user_offices($this->session->user_id, $this->session->context_definition['context_definition_name']);
 
     $columns = $this->columns();
     $search_columns = $columns;
@@ -205,12 +206,19 @@ class Office_bank extends MY_Controller
     
     if(!$this->session->system_admin){
       $this->read_db->where(array('bank.fk_account_system_id'=>$this->session->user_account_system_id));
+      $this->read_db->where_in('office_bank.fk_office_id', array_column($user_offices, 'office_id'));
+    }
+
+    if($this->session->master_table){
+      $this->read_db->where(array('office_bank.fk_funder_id'=>$this->input->post('id')));
     }
 
     $this->read_db->select($columns);
     $this->read_db->join('bank','bank.bank_id=office_bank.fk_bank_id');
     $this->read_db->join('office','office.office_id=office_bank.fk_office_id');
     $this->read_db->join('account_system','account_system.account_system_id=bank.fk_account_system_id');
+
+
 
     $result_obj = $this->read_db->get('office_bank');
     

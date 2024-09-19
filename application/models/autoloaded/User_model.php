@@ -555,6 +555,31 @@ class User_model extends MY_Model
     return array_unique($user_hierarchy_offices, SORT_REGULAR);
   }
 
+  function direct_user_offices($user_id, $user_context){
+    $user_offices = array_merge($this->primary_user_offices($user_id, $user_context), $this->office_directly_attached_to_user($user_id));
+    return $user_offices;
+  }
+
+  function primary_user_offices($user_id, $user_context){
+
+    $this->read_db->select(array('office_id','office_name','office_is_readonly','office_is_active','office.fk_context_definition_id as context_definition_id'));
+    $this->read_db->where(array('fk_user_id' => $user_id));
+    $this->read_db->join('context_'.$user_context, 'context_'.$user_context.'.context_'.$user_context.'_id=context_'.$user_context.'_user.fk_context_'.$user_context.'_id');
+    $this->read_db->join('office','office.office_id=context_'.$user_context.'.fk_office_id');
+    $office_obj = $this->read_db->get('context_'.$user_context.'_user');
+
+    $offices = [];
+
+    if($office_obj->num_rows() > 0){
+      $offices = $office_obj->result_array();
+    }
+
+    // log_message('error', json_encode($offices));
+
+    return $offices;
+  }
+
+  // These are secondary assigned offices
   function office_directly_attached_to_user($user_id){
     $offices = [];
 
@@ -563,7 +588,7 @@ class User_model extends MY_Model
     //   ['office_id' => 101, 'office_name' => 'Test Office 2']
     // ];
 
-    $this->read_db->select(array('office_id','office_name','office_is_readonly'));
+    $this->read_db->select(array('office_id','office_name','office_is_readonly','office.fk_context_definition_id as context_definition_id'));
     $this->read_db->join('office','office.office_id=office_user.fk_office_id');
     $this->read_db->where(array('office_user.fk_user_id' => $user_id, 'office_user_is_active' => 1));
     $offices_obj = $this->read_db->get('office_user');
@@ -595,7 +620,7 @@ class User_model extends MY_Model
 
         $office_group_ids = array_column($office_group_ids_array, 'fk_office_group_id');
 
-        $this->read_db->select(array('office_id', 'office_name', "office_is_active",'office_is_readonly'));
+        $this->read_db->select(array('office_id', 'office_name', "office_is_active",'office_is_readonly','office.fk_context_definition_id as context_definition_id'));
         $this->read_db->join('office', 'office.office_id=office_group_association.fk_office_id');
         $this->read_db->where_in('fk_office_group_id', $office_group_ids);
         $office_group_association_obj = $this->read_db->get('office_group_association');
@@ -641,7 +666,7 @@ class User_model extends MY_Model
     $level_five_context_table = isset($contexts[4]) ? 'context_' . $contexts[4] : null; //region
     $level_six_context_table = isset($contexts[5]) ? 'context_' . $contexts[5] : null; //global
 
-    $this->db->select(array('office_id', 'office_name', 'office_is_active','office_is_readonly'));
+    $this->db->select(array('office_id', 'office_name', 'office_is_active','office_is_readonly','office.fk_context_definition_id as context_definition_id'));
 
 
     if ($contexts[0] != null && $looping_context == $contexts[0]) { // center
