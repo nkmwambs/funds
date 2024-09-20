@@ -1276,7 +1276,7 @@ class Voucher_model extends MY_Model
 
         $this->read_db->where_in('request.fk_status_id', $max_approval_status_ids);
 
-        $this->read_db->where(array('fk_voucher_id' => 0));
+        $this->read_db->where(array('fk_voucher_id' => 0, 'project_allocation.fk_office_id' => $office_id));
         return $this->read_db->get('request_detail')->result_array();
     }
 

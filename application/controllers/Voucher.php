@@ -2044,7 +2044,7 @@ class Voucher extends MY_Controller
     $header['voucher_number'] = $voucher_number; //$this->input->post('voucher_number');
     $header['fk_voucher_type_id'] = $this->input->post('fk_voucher_type_id');
     $header['fk_office_bank_id'] = $this->get_office_bank_id_to_post($office_id);
-    $header['fk_office_cash_id'] = $this->input->post('fk_office_cash_id') == null ? 0 : $this->input->post('fk_office_cash_id');
+    $header['fk_office_cash_id'] = $this->input->post('fk_office_cash_id') == null ?: $this->input->post('fk_office_cash_id');
     // log_message('error', json_encode($this->input->post('fk_office_cash_id')));
     $header['voucher_cheque_number'] = $this->input->post('voucher_cheque_number') == null ? 0 : $this->input->post('voucher_cheque_number');
     $header['fk_cheque_book_id'] = $this->voucher_type_model->is_voucher_type_cheque_referenced($header['fk_voucher_type_id']) ? $this->cheque_book_model->get_cheque_book_id_for_cheque_number($header['voucher_cheque_number'], $header['fk_office_bank_id']) : NULL;
@@ -2295,17 +2295,17 @@ class Voucher extends MY_Controller
     $reporting_month = date('Y-m-01', strtotime($post['transaction_date']));
 
     //Get unapproved and approved vourchers
-    $fully_approved_vouchers_cash_balance = $this->financial_report_model->compute_cash_at_hand([$office_id],$funder_id, $reporting_month, [], [], $office_cash_id, true);
+    $fully_approved_vouchers_cash_balance = $this->financial_report_model->compute_cash_at_hand([$office_id], $reporting_month, [$funder_id], [], [], $office_cash_id, true);
 
-    $unsubmitted_and_submitted_vouchers_cash_income = $this->voucher_model->unapproved_month_vouchers($office_id,$funder_id, $reporting_month,  'bank_contra', 'bank', $office_cash_id);
+    $unsubmitted_and_submitted_vouchers_cash_income = $this->voucher_model->unapproved_month_vouchers($office_id, $reporting_month,  'bank_contra', 'bank', [$funder_id], $office_cash_id);
 
     //Total Income
     $total_cash_income = $unsubmitted_and_submitted_vouchers_cash_income + $fully_approved_vouchers_cash_balance;
 
     //Total Expense
-    $total_cash_expense = $this->voucher_model->unapproved_month_vouchers($office_id,$funder_id, $reporting_month,  'expense', 'cash', $office_cash_id);
+    $total_cash_expense = $this->voucher_model->unapproved_month_vouchers($office_id, $reporting_month,  'expense', 'cash', [$funder_id], $office_cash_id);
 
-    $unsubmitted_vouchers_cash_rebank_voucher = $this->voucher_model->unapproved_month_vouchers($office_id,$funder_id, $reporting_month,  'cash_contra', 'cash', $office_cash_id);
+    $unsubmitted_vouchers_cash_rebank_voucher = $this->voucher_model->unapproved_month_vouchers($office_id, $reporting_month,  'cash_contra', 'cash', [$funder_id], $office_cash_id);
 
     //Total Cash balance
     $total_cash_balance = $total_cash_income - ($total_cash_expense + $unsubmitted_vouchers_cash_rebank_voucher);
