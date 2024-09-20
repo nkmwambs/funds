@@ -87,7 +87,7 @@ extract($result);
                 <div class='form-group'>
 
                     <span class='hidden'>
-                        <label class='control-label col-xs-1'><?= get_phrase('bank_account'); ?></label>
+                        <label class='control-label col-xs-2'><?= get_phrase('bank_account'); ?></label>
                         <div class='col-xs-2'>
                             <select onchange="get_bank_cash_information(this);" class="form-control required account_fields" disabled="disabled" name='fk_office_bank_id' id='bank'>
                                 <option value=""><?= get_phrase('select_bank_account'); ?></option>
@@ -96,7 +96,7 @@ extract($result);
                     </span>
 
                     <span class='hidden'>
-                        <label class='control-label col-xs-1'><?= get_phrase('cheque_number'); ?></label>
+                        <label class='control-label col-xs-2'><?= get_phrase('cheque_number'); ?></label>
                         <div class='col-xs-2'>
                             <!-- <input type='text' name='voucher_cheque_number' id='cheque_number' disabled='disabled' class='form-control required account_fields' /> -->
                             <select class='form-control required account_fields' name='voucher_cheque_number' id='cheque_number' disabled='disabled'>
@@ -106,7 +106,7 @@ extract($result);
                     </span>
 
                     <span class='hidden'>
-                        <label class='control-label col-xs-1'><?= get_phrase('cash_account'); ?></label>
+                        <label class='control-label col-xs-2'><?= get_phrase('cash_account'); ?></label>
                         <div class='col-xs-2'>
                             <select class="form-control required account_fields" disabled="disabled" name='fk_office_cash_id' id='cash_account'>
                                 <option value=""><?= get_phrase('select_cash_account'); ?></option>
@@ -115,7 +115,7 @@ extract($result);
                     </span>
 
                     <span class='hidden'>
-                        <label class='control-label col-xs-1'><?= get_phrase('receiving_account'); ?></label>
+                        <label class='control-label col-xs-2'><?= get_phrase('receiving_account'); ?></label>
                         <div class='col-xs-2'>
                             <select name='cash_recipient_account' disabled="disabled" id='cash_recipient_account' class='form-control required account_fields'>
                             </select>
@@ -251,15 +251,7 @@ extract($result);
 
     });
 
-    // function update_request_details_count_on_badge(){
-    //     var badges = $(".requests_badge");
-    //     var request_rows = $(".map_request_to_voucher_row");
 
-    //     var current_count = request_rows.length;
-
-    //     badges.html(current_count);
-
-    // }
     function load_approved_requests() {
         var office = $("#office").val();
         var url = "<?= base_url(); ?>Voucher/get_approve_request_details/" + office;
@@ -453,64 +445,6 @@ extract($result);
         $("#cash_recipient_account").prop("selectedIndex", 0);
 
     }
-
-    // $('#cash_account').on('change', function() {
-
-    //     let total_unapproved_expense_vouchers = unapproved_current_month_vouchers('expense', 'cash');
-
-    //     let total_unapproved_vouchers = unapproved_current_month_vouchers('income', 'bank');
-
-    //     console.log(total_unapproved_expense_vouchers);
-
-    //     console.log(total_unapproved_vouchers);
-
-
-    // });
-
-    // function unapproved_current_month_vouchers(effect_code, account_code) {
-
-    //     let cash_account=$('#cash_account');
-
-    //     let office_bank=$('#bank');
-
-    //     let unapproved_expense = null;
-
-    //     let office_id = $('#office').val();
-
-    //     let transction_date = $('#transaction_date').val();
-
-    //     let url;
-
-    //     //Check if cash_office_id exists
-    //     if($('#cash_account').length){
-
-    //         var office_cash_id=cash_account.val();
-
-    //         url = '<?= base_url() ?>voucher/unapproved_month_vouchers/' + office_id + '/' + transction_date + '/' + effect_code + '/' + account_code + '/' + office_cash_id+'/'+0;
-    //     }
-
-    //     //CHeck if bank_office_id exists
-    //     if($('#bank').length){
-
-    //         var office_bank_id=office_bank.val();
-
-    //         url = '<?= base_url() ?>voucher/unapproved_month_vouchers/' + office_id + '/' + transction_date + '/' + effect_code + '/' + account_code + '/0' +'/'+ office_bank_id;
-
-    //     }
-
-    //     $.ajax({
-    //         url: url,
-    //         type: 'get',
-    //         dataType: 'html',
-    //         async: false,
-    //         success: function(data) {
-    //             unapproved_expense = data;
-    //         }
-    //     });
-    //     return unapproved_expense;
-
-    // }
-
 
     function unapproved_current_month_vouchers(effect_code, account_code) {
 

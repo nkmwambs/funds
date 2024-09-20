@@ -1971,6 +1971,7 @@ class Voucher extends MY_Controller
     $detail = [];
     $row = [];
     $office_id = $this->input->post('fk_office_id');
+    $funder_id = $this->input->post('fk_funder_id');
     $voucher_number = $this->input->post('voucher_number');
     // $first_day_of_month = date("Y-m-01", strtotime($this->input->post('voucher_date')));
     $voucher_date = $this->input->post('voucher_date');
@@ -2027,6 +2028,7 @@ class Voucher extends MY_Controller
     $header['voucher_name'] = $this->grants_model->generate_item_track_number_and_name('voucher')['voucher_name'];
 
     $header['fk_office_id'] = $office_id;
+    $header['fk_funder_id'] = $funder_id;
     $header['voucher_date'] = $voucher_date;
     $header['voucher_number'] = $voucher_number; //$this->input->post('voucher_number');
     $header['fk_voucher_type_id'] = $this->input->post('fk_voucher_type_id');
