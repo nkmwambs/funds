@@ -245,13 +245,11 @@ $check_if_financial_report_is_submitted = $this->financial_report_model->check_i
 
                                 $reuse_flag_when_eft_used = '';
 
-                                if (is_numeric($cheque_number)) {
-
-                                    $reuse_flag_when_eft_used = $cheque_number != 0 ? 're_use_eft' : '';
-                                } else if (!is_numeric($cheque_number) && $cheque_number != '') {
-                                    $reuse_flag_when_eft_used = 're_use_eft';
-                                }
-
+                                // if (is_numeric($cheque_number)) {
+                                   // $reuse_flag_when_eft_used = $cheque_number != 0 ? get_phrase('re_use_eft') : '';
+                                // } else if (!is_numeric($cheque_number) && $cheque_number != '') {
+                                    //$reuse_flag_when_eft_used = get_phrase('re_use_eft');
+                                // }
 
                                 //echo $eft_or_chq;
 
