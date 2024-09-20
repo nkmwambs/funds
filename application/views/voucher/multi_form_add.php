@@ -89,7 +89,7 @@ extract($result);
                     <span class='hidden'>
                         <label class='control-label col-xs-2'><?= get_phrase('bank_account'); ?></label>
                         <div class='col-xs-2'>
-                            <select onchange="get_bank_cash_information(this);" class="form-control required account_fields" disabled="disabled" name='fk_office_bank_id' id='bank'>
+                            <select class="form-control required account_fields" disabled="disabled" name='fk_office_bank_id' id='bank'>
                                 <option value=""><?= get_phrase('select_bank_account'); ?></option>
                             </select>
                         </div>
@@ -450,41 +450,38 @@ extract($result);
 
     function unapproved_current_month_vouchers(effect_code, account_code) {
 
-        let cash_account = $('#cash_account');
-
-        let office_bank = $('#bank');
-
+        const cash_account = $('#cash_account');
+        const office_bank = $('#bank');
+        const office_id = $('#office').val();
+        const transction_date = $('#transaction_date').val();
+        const url = '<?= base_url() ?>voucher/get_unapproved_month_vouchers'
+        const funder_id = $('#funder').val()
         let unapproved_expense = null;
-
-        let office_id = $('#office').val();
-
-        let transction_date = $('#transaction_date').val();
-
-        let url;
+        let office_cash_id = 0;
+        let office_bank_id = 0;
 
         //Check if cash_office_id exists
         if ($('#cash_account').length) {
-
-            var office_cash_id = $('#cash_account').val();
-
-            url = '<?= base_url() ?>voucher/unapproved_month_vouchers/' + office_id + '/' + transction_date + '/' + effect_code + '/' + account_code + '/' + office_cash_id + '/' + 0;
-        }
+            office_cash_id = $('#cash_account').val();        }
 
         //CHeck if bank_office_id exists
         if ($('#bank').length) {
+            office_bank_id = $('#bank').val();        }
 
-            var office_bank_id = $('#bank').val();
-
-            url = '<?= base_url() ?>voucher/unapproved_month_vouchers/' + office_id + '/' + transction_date + '/' + effect_code + '/' + account_code + '/' + 0 + '/' + office_bank_id;
-
-
-        }
+        const data = {
+                office_id,
+                funder_id,
+                transction_date,
+                effect_code,
+                account_code,
+                office_cash_id,
+                office_bank_id
+            }
 
         $.ajax({
             url: url,
-            type: 'get',
-            dataType: 'html',
-            async: false,
+            method: 'POST',
+            data: data,
             success: function(data) {
                 unapproved_expense = data;
             }
@@ -511,57 +508,6 @@ extract($result);
             $('#approved_vouchers_cash_balance').closest('span').closest('span').addClass('hidden');
         }
     });
-
-    // function prevent_bank_change_when_voucher_has_detail_row(){
-    //     var tbl_body_rows = $("#tbl_voucher_body tbody tr");
-    //     var count_body_rows = tbl_body_rows.length;
-
-    //     if(count_body_rows > 0){
-    //         alert("You can't change a bank account when voucher has detail rows");
-    //         return false;
-    //     }else{
-    //         return true;
-    //     }
-
-    // }
-
-    // $("#bank").on("change", function(ev) {
-
-    //     //alert('Yes Here');
-    //     const office = $('#office').val();
-    //     const bank = $("#bank").val();
-    //     const funder = $('#funder').val();
-
-
-    //     // Toogle Disable when a bank account is selected or not
-    //     if ($(this).val() != '') {
-    //         // alert('Hellooo');
-    //         $("#cheque_number").removeAttr('disabled');
-    //         $("#cheque_number").removeAttr('readonly');
-
-    //         $("#bank_balance").closest('span').removeClass('hidden');
-
-    //         compute_bank_balance(office, funder, bank);
-
-    //     } else {
-    //         $("#cheque_number").val("");
-    //         $("#cheque_number").prop('disabled', 'disabled');
-    //         $("#bank_balance").closest('span').addClass('hidden');
-    //     }
-
-
-    //     // Populate transfer account list
-    //     if (!$("#cash_recipient_account").closest('span').hasClass('hidden')) {
-    //         populate_cash_transfer_recipient($(this));
-    //     }
-
-    //     if ($("#cheque_number").is('input') && $("#cheque_number").val() != "") {
-    //         checkIfEftREfIsValid(office, bank, $("#cheque_number").val());
-    //     } else {
-    //         check_cheque_validity();
-    //     }
-
-    // });
 
     function compute_bank_balance(office_id, funder_id, office_bank_id) {
         const url = '<?= base_url(); ?>voucher/compute_bank_balance';
@@ -967,13 +913,13 @@ extract($result);
 
     }
 
-    function get_bank_cash_information(OfficeBankSelect) {
-
+    $("#bank").on('change', function(){
+        const OfficeBankSelect = $(this)
         let office_id = $("#office").val();
         let funder_id = $("#funder").val();
-        let voucher_type_id = $("#voucher_type").val(); //$(voucherTypeSelect).val(); // Can be expense, income, cash_contra or bank_contra
+        let voucher_type_id = $("#voucher_type").val(); ; // Can be expense, income, cash_contra or bank_contra
         let url = "<?= base_url(); ?>Voucher/check_voucher_type_affects_bank/" + office_id + "/"+ funder_id + "/" + voucher_type_id;
-        let office_bank_id = $(OfficeBankSelect).val(); //!$("#bank").attr('disabled') ? $("#bank").val() : 0;
+        let office_bank_id = $(OfficeBankSelect).val();
         let transaction_date = $('#transaction_date').val();
         let extra_data = {
             'office_bank_id': office_bank_id
@@ -1019,8 +965,63 @@ extract($result);
 
         });
 
+    })
 
-    }
+    // function get_bank_cash_information() {
+
+    //     const OfficeBankSelect = $(this)
+    //     let office_id = $("#office").val();
+    //     let funder_id = $("#funder").val();
+    //     let voucher_type_id = $("#voucher_type").val(); //$(voucherTypeSelect).val(); // Can be expense, income, cash_contra or bank_contra
+    //     let url = "<?= base_url(); ?>Voucher/check_voucher_type_affects_bank/" + office_id + "/"+ funder_id + "/" + voucher_type_id;
+    //     let office_bank_id = $(OfficeBankSelect).val(); //!$("#bank").attr('disabled') ? $("#bank").val() : 0;
+    //     let transaction_date = $('#transaction_date').val();
+    //     let extra_data = {
+    //         'office_bank_id': office_bank_id
+    //     };
+        
+    //     if(!office_bank_id){
+    //         return false;
+    //     }
+
+    //     load_bank_dependant_data(OfficeBankSelect)
+
+    //     $.post(url, extra_data, function(response) {
+
+    //         var response_objects = JSON.parse(response);
+    //         var response_is_voucher_type_requires_cheque_referencing = response_objects['voucher_type_requires_cheque_referencing'];
+    
+    //         //Get the active cheque of an office;
+
+    //         if (response_is_voucher_type_requires_cheque_referencing) {
+    //             var url = "<?= base_url(); ?>Voucher/check_active_cheque_book_for_office_bank_exist/" + office_id + "/" + office_bank_id + "/" + transaction_date;
+    //             $.get(url, function(response) {
+    //                 // alert(response);
+    //                 var response_obj = JSON.parse(response);
+    //                 //Check if response =false and then redirect to the cheque form
+    //                 if (!response_obj['is_active_cheque_book_existing']) {
+
+    //                     alert('No active cheque book & you will be directed to add cheque book form');
+
+    //                     var redirect_to_add_cheque_book_url = "<?= base_url(); ?>cheque_book/single_form_add";
+
+    //                     window.location.replace(redirect_to_add_cheque_book_url);
+    //                     //alert('Yes');
+    //                 } else if (!response_obj['are_all_cheque_books_fully_approved']) {
+
+    //                     alert('Your active cheque book is either unsubmitted, declined or reinstated and not approved. You will be redirect to the cheque book');
+
+    //                     var redirect_to_add_cheque_book_url = "<?= base_url(); ?>cheque_book/view/" + response_obj['current_cheque_book_id']; //QnG6NpbmWr
+
+    //                     window.location.replace(redirect_to_add_cheque_book_url);
+    //                 }
+    //             });
+    //         }
+
+    //     });
+
+
+    // }
 
     function change_voucher_number_field_to_eft_number(response_is_voucher_type_requires_cheque_referencing) {
 

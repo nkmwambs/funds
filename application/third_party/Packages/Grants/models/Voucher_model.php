@@ -92,7 +92,7 @@ class Voucher_model extends MY_Model
      * @param Int $office_bank_id - Cash type e.g. bank 1
      * @return float - True if reconciliation has been created else false
      */
-    public function unapproved_month_vouchers(int $office_id, int $funder_id, string $reporting_month, string $effect_code, string $account_code, int $cash_type_id = 0, int $office_bank_id = 0): float
+    public function unapproved_month_vouchers(int $office_id, string $reporting_month, string $effect_code, string $account_code, array $funder_ids = [], ?int $cash_type_id = 0, ?int $office_bank_id = 0): float
     {
 
         $max_approval_status_ids = $this->general_model->get_max_approval_status_id('voucher', [$office_id]);
@@ -107,7 +107,11 @@ class Voucher_model extends MY_Model
         $this->read_db->join('voucher_type_account', 'voucher_type_account.voucher_type_account_id=voucher_type.fk_voucher_type_account_id');
         $this->read_db->join('voucher_type_effect', 'voucher_type_effect.voucher_type_effect_id=voucher_type.fk_voucher_type_effect_id');
         $this->read_db->where(['voucher.fk_office_id' => $office_id, 'voucher.voucher_date >=' => $start_of_reporting_month, 'voucher.voucher_date <=' => $end_of_reporting_month, 'voucher.fk_status_id!=' => $max_approval_status_ids[0]]);
-        $this->read_db->where(['voucher_type_effect_code' => $effect_code, 'voucher_type_account_code' => $account_code, 'voucher.fk_funder_id' => $funder_id]);
+        $this->read_db->where(['voucher_type_effect_code' => $effect_code, 'voucher_type_account_code' => $account_code]);
+
+        if(!empty($funder_ids)){
+            $this->read_db->where_in('voucher.fk_funder_id', $funder_ids);
+        }
 
         if ($cash_type_id != 0) {
             $this->read_db->where(['fk_office_cash_id' => $cash_type_id]);
@@ -1440,16 +1444,19 @@ class Voucher_model extends MY_Model
      * @author: Livingstone Onduso
      * @Date: 4/12/2022
      */
-    public function get_office_cash(int $account_system_id, int $office_cash_id = 0)
+    public function get_office_cash(int $account_system_id, ?int $office_cash_id = 0)
     {
 
-        $result = $this->read_db->get_where('office_cash', array('fk_account_system_id' => $account_system_id, 'office_cash_id' => $office_cash_id));
+        $office_cash = [];
+
+        $this->read_db->where(array('fk_account_system_id' => $account_system_id, 'office_cash_id' => $office_cash_id));
+        $result = $this->read_db->get('office_cash');
 
         if ($result->num_rows() > 0) {
-            return $result->row();
-        } else {
-            return [];
-        }
+            $office_cash = $result->row();
+        } 
+
+        return $office_cash;
     }
     /**
      * get_project_allocation

@@ -413,7 +413,7 @@ class Financial_report_model extends MY_Model
         }
 
         if(!empty($funder_ids)){
-            $this->read_db->where(array('office_bank.fk_funder_id' => $funder_ids));
+            $this->read_db->where_in('office_bank.fk_funder_id', $funder_ids);
         }
 
         $this->read_db->group_by(array('fk_system_opening_balance_id'));
@@ -688,7 +688,7 @@ class Financial_report_model extends MY_Model
         $this->read_db->where_in('system_opening_balance.fk_office_id', $office_ids);
 
         if(!empty($funder_ids)){
-            $this->read_db->where(['office_bank.fk_funder_id' => $funder_ids]);
+            $this->read_db->where_in('office_bank.fk_funder_id', $funder_ids);
         }
 
         if (!empty($project_ids)) {

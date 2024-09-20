@@ -244,7 +244,13 @@ class Voucher extends MY_Controller
     $raw_result = $this->voucher_model->get_transaction_voucher(hash_id($id, 'decode'));
     
     $office_bank = $this->voucher_model->get_office_bank($raw_result[0]['fk_office_bank_id']);
-    $office_cash = $this->voucher_model->get_office_cash($this->office_account_system($raw_result[0]['fk_office_id'])->account_system_id, $raw_result[0]['fk_office_cash_id']);
+
+    $account_system_id = $this->office_account_system($raw_result[0]['fk_office_id'])->account_system_id;
+    $office_cash_id = $raw_result[0]['fk_office_cash_id'];
+
+    // log_message('error', json_encode($raw_result[0]));
+
+    $office_cash = $this->voucher_model->get_office_cash($account_system_id,$office_cash_id);
     $voucher_type = $this->voucher_model->get_voucher_type($raw_result[0]['fk_voucher_type_id']);
     $cash_recipient_account = $this->voucher_model->get_voucher_cash_recipients(hash_id($id, 'decode'));
 
@@ -449,14 +455,14 @@ class Voucher extends MY_Controller
     if ($voucher_data['effect_type_code'] == 'income' && $voucher_data['account_type_code'] == 'bank') {
 
       //Income Totals
-      $unapproved_income_voucher_total = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $funder_id, $voucher_data['voucher_date'], 'income', 'bank', $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
+      $unapproved_income_voucher_total = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $voucher_data['voucher_date'], 'income', 'bank', [$funder_id], $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
 
-      $full_bank_income_voucher_total = $this->financial_report_model->compute_cash_at_bank([$voucher_data['office_id']], $funder_id, $voucher_data['voucher_date'], [], [$voucher_data['fk_office_bank_id']], true);
+      $full_bank_income_voucher_total = $this->financial_report_model->compute_cash_at_bank([$voucher_data['office_id']], $voucher_data['voucher_date'],[$funder_id], [], [$voucher_data['fk_office_bank_id']], true);
 
       $total_income_bal = $unapproved_income_voucher_total + $full_bank_income_voucher_total;
 
       //Get all expenses
-      $total_current_expense_voucher = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $funder_id, $voucher_data['voucher_date'], 'expense', 'bank', $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
+      $total_current_expense_voucher = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $voucher_data['voucher_date'], 'expense', 'bank', [$funder_id], $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
 
       //Less amount of the selected voucher
       $total_income_bal -= $selected_voucher_income_amount;
@@ -468,10 +474,10 @@ class Voucher extends MY_Controller
     } else if ($voucher_data['effect_type_code'] == 'bank_contra' && $voucher_data['account_type_code'] == 'bank') {
 
       //Full cash vouchers
-      $full_cash_income_voucher_total = $this->financial_report_model->compute_cash_at_hand([$voucher_data['office_id']], $funder_id, $voucher_data['voucher_date'], [], [], $voucher_data['fk_office_cash_id'], true);
+      $full_cash_income_voucher_total = $this->financial_report_model->compute_cash_at_hand([$voucher_data['office_id']], $voucher_data['voucher_date'],[$funder_id], [], [], $voucher_data['fk_office_cash_id'], true);
 
       //Petty Cash Deposit
-      $total_petty_cash_deposit_voucher = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $funder_id, $voucher_data['voucher_date'], 'bank_contra', 'bank', $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
+      $total_petty_cash_deposit_voucher = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $voucher_data['voucher_date'], 'bank_contra', 'bank', [$funder_id], $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
 
       if (($total_petty_cash_deposit_voucher < 0 && $full_cash_income_voucher_total >= 0) || ($total_petty_cash_deposit_voucher >= 0 && $total_petty_cash_deposit_voucher >= 0)) {
         $total_petty_cash = $full_cash_income_voucher_total + $total_petty_cash_deposit_voucher;
@@ -480,7 +486,7 @@ class Voucher extends MY_Controller
       }
 
       //Get all expenses
-      $total_current_expense_voucher = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $funder_id, $voucher_data['voucher_date'], 'expense', 'cash', $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
+      $total_current_expense_voucher = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $voucher_data['voucher_date'], 'expense', 'cash', [$funder_id], $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
 
       //Check if total expenses > total cash
       $total_petty_cash -= $selected_voucher_income_amount;
@@ -932,7 +938,8 @@ class Voucher extends MY_Controller
   {
 
     $this->read_db->join('account_system', 'account_system.account_system_id=office.fk_account_system_id');
-    $office_accounting_system = $this->read_db->get_where('office', array('office_id' => $office_id))->row();
+    $this->read_db->where(array('office_id' => $office_id));
+    $office_accounting_system = $this->read_db->get('office')->row();
 
     return $office_accounting_system;
   }
@@ -2198,11 +2205,20 @@ class Voucher extends MY_Controller
    * @return float - True if reconciliation has been created else false
    */
 
-  public function unapproved_month_vouchers(int $office_id, string $reporting_month, string $effect_code, string $account_code, int $cash_type_id = 0, int $office_bank_id = 0)
+  public function get_unapproved_month_vouchers()
   {
+    // int $office_id, string $reporting_month, string $effect_code, string $account_code, int $cash_type_id = 0, int $office_bank_id = 0
+    $post = $this->input->post();
 
+    $office_id = $post['office_id'];
+    $reporting_month = $post['transction_date'];
+    $effect_code = $post['effect_code'];
+    $account_code = $post['account_code'];
+    $cash_type_id = $post['office_cash_id'];
+    $office_bank_id = $post['office_bank_id'];
+    $funder_id = $post['funder_id'];
 
-    $unproved_expense_vouchers = $this->voucher_model->unapproved_month_vouchers($office_id, $reporting_month, $effect_code, $account_code, $cash_type_id, $office_bank_id);
+    $unproved_expense_vouchers = $this->voucher_model->unapproved_month_vouchers($office_id, $reporting_month, $effect_code, $account_code, [$funder_id], $cash_type_id, $office_bank_id);
 
     echo json_encode($unproved_expense_vouchers);
   }
@@ -2226,17 +2242,17 @@ class Voucher extends MY_Controller
     $reporting_month = date('Y-m-01', strtotime($post['transaction_date']));
 
     //Total bank approved/fully paid vouchers
-    $fully_approved_vouchers_bank_balance = $this->financial_report_model->compute_cash_at_bank([$office_id], $funder_id, $reporting_month, [], [$office_bank_id], true);
+    $fully_approved_vouchers_bank_balance = $this->financial_report_model->compute_cash_at_bank([$office_id], $reporting_month, [$funder_id], [], [$office_bank_id], true);
 
     //Income to bank
-    $unapproved_cash_recieved_to_bank_vouchers = $this->voucher_model->unapproved_month_vouchers($office_id, $funder_id, $reporting_month,  'income', 'bank', 0, $office_bank_id);
+    $unapproved_cash_recieved_to_bank_vouchers = $this->voucher_model->unapproved_month_vouchers($office_id, $reporting_month,  'income', 'bank', [$funder_id], 0, $office_bank_id);
 
-    $unapproved_petty_cash_rebank_vouchers = $this->voucher_model->unapproved_month_vouchers($office_id, $funder_id, $reporting_month,  'cash_contra', 'cash', 0, $office_bank_id);
+    $unapproved_petty_cash_rebank_vouchers = $this->voucher_model->unapproved_month_vouchers($office_id, $reporting_month,  'cash_contra', 'cash', [$funder_id], 0, $office_bank_id);
 
     //Bank expenses unapproved vouchers 
-    $unapproved_bank_expense_vouchers = $this->voucher_model->unapproved_month_vouchers($office_id, $funder_id, $reporting_month,  'expense', 'bank', 0, $office_bank_id);
+    $unapproved_bank_expense_vouchers = $this->voucher_model->unapproved_month_vouchers($office_id, $reporting_month,  'expense', 'bank', [$funder_id], 0, $office_bank_id);
 
-    $unapproved_petty_cash_deposit_vouchers = $this->voucher_model->unapproved_month_vouchers($office_id, $funder_id, $reporting_month,  'bank_contra', 'bank', 0, $office_bank_id);
+    $unapproved_petty_cash_deposit_vouchers = $this->voucher_model->unapproved_month_vouchers($office_id, $reporting_month,  'bank_contra', 'bank', [$funder_id], 0, $office_bank_id);
 
     $total_bank_expenses = $unapproved_bank_expense_vouchers + $unapproved_petty_cash_deposit_vouchers;
 
