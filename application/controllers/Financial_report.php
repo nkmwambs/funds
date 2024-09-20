@@ -139,10 +139,6 @@ class Financial_report extends MY_Controller
     return $proof_of_cash;
   }
 
-  private function financial_ratios()
-  {
-  }
-
   private function _bank_reconciliation($office_ids, $reporting_month, $multiple_offices_report, $multiple_projects_report, $project_ids = [], $office_bank_ids = [])
   {
 
@@ -660,6 +656,10 @@ class Financial_report extends MY_Controller
     ];
 
     return $columns;
+  }
+
+  function financial_ratios(){
+    
   }
 
   function get_financial_reports()
@@ -1236,26 +1236,16 @@ class Financial_report extends MY_Controller
 
   function _office_projects($office_ids, $reporting_month, $project_ids = [], $office_bank_ids = [])
   {
-
-    // log_message('error', json_encode(['office_ids' => $office_ids, 'reporting_month' => $reporting_month, 'project_ids' => $project_ids, 'office_bank_ids' => $office_bank_ids]));
-
     $start_date_of_reporting_month = date('Y-m-01', strtotime($reporting_month));
-    // $end_date_of_reporting_month = date('Y-m-t', strtotime($reporting_month));
-
-    $this->read_db->select(array('project_id', 'project_name', 'funder_name', 'fk_office_id', 'project_allocation_amount'));
-    $this->read_db->where_in('fk_office_id', $office_ids);
-    // $query_condition = "(project_end_date >= '" . $start_date_of_reporting_month . "' OR  project_allocation_extended_end_date >= '" . $start_date_of_reporting_month . "')";
+    $this->read_db->select(array('project_id', 'project_name', 'funder_name', 'project_allocation.fk_office_id', 'project_allocation_amount'));
+    $this->read_db->where_in('project_allocation.fk_office_id', $office_ids);
     $query_condition = "(project_start_date <= '" . $start_date_of_reporting_month . "' AND project_end_date IS NOT NULL AND project_end_date NOT LIKE '0000-00-00')";
     $this->read_db->where($query_condition);
-
     // Only list non default projects. There can be only 1 default project per accouting system
     $this->read_db->where(array('project_is_default' => 0));
-
     $this->read_db->join('project', 'project.project_id=project_allocation.fk_project_id');
 
-
     if (!empty($project_ids)) {
-
       $this->read_db->where_in('project_id', $project_ids);
     }
 
@@ -1265,7 +1255,6 @@ class Financial_report extends MY_Controller
     }
 
     $this->read_db->join('funder', 'funder.funder_id=project.fk_funder_id');
-
     $projects = $this->read_db->get('project_allocation')->result_array();
 
     $ordered_array = [];
@@ -1328,19 +1317,6 @@ class Financial_report extends MY_Controller
     echo $this->financial_report_model->update_bank_support_funds_and_oustanding_cheque_opening_balances($office_bank_id, $cheque_id, $reporting_month, $bounced_flag);
   }
 
-  // function update_bank_support_funds_and_oustanding_cheque_opening_balances_test(){
-  //   //$reporting_month = $this->input->post('reporting_month');
-
-  //   $post=$this->input->post();
-  //   $office_bank_id=$post['office_bank_id'];
-  //   $cheque_id=$post['data-opening_outstanding_cheque_id'];
-  //   $reporting_month=date('Y-m-t', strtotime($post['reporting_month']));
-  //   $bounced_flag=$post['data-bounce_flag_id'];
-
-  //  echo $this->financial_report_model->update_bank_support_funds_and_oustanding_cheque_opening_balances($office_bank_id,$cheque_id,$reporting_month, $bounced_flag);
-  // }
-
-  //End of Onduso Additon on 2/8/2022
 
   function clear_transactions()
   {
