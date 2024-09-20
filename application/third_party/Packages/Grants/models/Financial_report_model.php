@@ -189,12 +189,12 @@ class Financial_report_model extends MY_Model
     //     return $account_opening_balance;
     // }
 
-    function compute_cash_at_hand($office_ids, $reporting_month, $project_ids = [], $office_bank_ids = [], $office_cash_id = 0, $retrieve_only_max_approved = true)
+    function compute_cash_at_hand($office_ids, $funder_id, $reporting_month, $project_ids = [], $office_bank_ids = [], $office_cash_id = 0, $retrieve_only_max_approved = true)
     {
       //return 15000;
-      $cash_transactions_to_date = $this->cash_transactions_to_date($office_ids, $reporting_month, $project_ids, $office_bank_ids, $office_cash_id, $retrieve_only_max_approved); 
+      $cash_transactions_to_date = $this->cash_transactions_to_date($office_ids,$funder_id, $reporting_month, $project_ids, $office_bank_ids, $office_cash_id, $retrieve_only_max_approved); 
 
-      $opening_cash_balance = $this->opening_cash_balance($office_ids, $reporting_month, $project_ids, $office_bank_ids, $office_cash_id)['cash'];
+      $opening_cash_balance = $this->opening_cash_balance($office_ids,$funder_id, $reporting_month, $project_ids, $office_bank_ids, $office_cash_id)['cash'];
       $cash_income_to_date = isset($cash_transactions_to_date['cash']['income']) ? $cash_transactions_to_date['cash']['income'] : 0; 
       $cash_expenses_to_date = isset($cash_transactions_to_date['cash']['expense']) ? $cash_transactions_to_date['cash']['expense'] : 0; 
   
@@ -202,21 +202,7 @@ class Financial_report_model extends MY_Model
       return $opening_cash_balance + $cash_income_to_date - $cash_expenses_to_date;
     }
 
-    // function compute_cash_at_bank($office_ids, $reporting_month, $project_ids = [], $office_bank_ids = [], $retrieve_only_max_approved = true)
-    // {
-    //   // log_message('error', json_encode($office_bank_ids));
-  
-    //   $office_ids = array_unique($office_ids); // Find out why office_ids come in duplicates
-    
-    //   $opening_bank_balance = $this->opening_cash_balance($office_ids, $reporting_month, $project_ids, $office_bank_ids)['bank'];
-      
-    //   $bank_income_to_date = $this->cash_transactions_to_date($office_ids, $reporting_month, 'income', 'bank', $project_ids, $office_bank_ids,0,$retrieve_only_max_approved); //$this->_cash_income_to_date($office_ids,$reporting_month);
-    //   $bank_expenses_to_date = $this->cash_transactions_to_date($office_ids, $reporting_month, 'expense', 'bank', $project_ids, $office_bank_ids,0,$retrieve_only_max_approved); //$this->_cash_expense_to_date($office_ids,$reporting_month);
-  
-    //   return $opening_bank_balance + $bank_income_to_date - $bank_expenses_to_date;
-    // }
-
-    function bank_to_bank_contra_receipts(Array $office_bank_ids, String $reporting_month) : Array {
+    function bank_to_bank_contra_receipts(Array $office_bank_ids, int $funder_id, String $reporting_month) : Array {
         $bank_to_bank_contra_received_amounts = [];
 
         $end_of_reporting_month = date('Y-m-t', strtotime($reporting_month));
@@ -226,7 +212,7 @@ class Financial_report_model extends MY_Model
             $this->read_db->select_sum('voucher_detail_total_cost');
             $this->read_db->group_by(array('income_account_id'));
             $this->read_db->where_in('office_bank_id', $office_bank_ids);
-            $this->read_db->where(array('voucher_date <=' => $end_of_reporting_month));
+            $this->read_db->where(array('voucher_date <=' => $end_of_reporting_month, 'funder_id' => $funder_id));
             $voucher_detail_total_cost_obj = $this->read_db->get('bank_to_bank_contra_receipts');
     
     
@@ -242,12 +228,11 @@ class Financial_report_model extends MY_Model
  
             }
         }
-
         
         return $bank_to_bank_contra_received_amounts;
     }
 
-    function bank_to_bank_contra_contributions(String $reporting_month, $office_bank_ids = []): Array {
+    function bank_to_bank_contra_contributions(String $reporting_month, $funder_id, $office_bank_ids = []): Array {
 
         $bank_to_bank_contra_contributed_amounts = [];
 
@@ -258,7 +243,7 @@ class Financial_report_model extends MY_Model
             $this->read_db->select_sum('voucher_detail_total_cost');
             $this->read_db->group_by(array('income_account_id'));
             $this->read_db->where_in('office_bank_id', $office_bank_ids);
-            $this->read_db->where(array('voucher_date <=' => $end_of_reporting_month));
+            $this->read_db->where(array('voucher_date <=' => $end_of_reporting_month, 'funder_id' => $funder_id));
             $voucher_detail_total_cost_obj = $this->read_db->get('bank_to_bank_contra_contributions');
 
             if($voucher_detail_total_cost_obj->num_rows() > 0){
@@ -277,30 +262,25 @@ class Financial_report_model extends MY_Model
         return $bank_to_bank_contra_contributed_amounts;
     }
 
-    function compute_cash_at_bank($office_ids, $reporting_month, $project_ids = [], $office_bank_ids = [], $retrieve_only_max_approved = true)
+    function compute_cash_at_bank($office_ids, $funder_id, $reporting_month, $project_ids = [], $office_bank_ids = [], $retrieve_only_max_approved = true)
     {
-      // log_message('error', json_encode($office_bank_ids));
 
-      $to_date_cancelled_opening_oustanding_cheques = $this->financial_report_model->get_month_cancelled_opening_outstanding_cheques($office_ids, $reporting_month, $project_ids, $office_bank_ids, 'to_date');
+      $to_date_cancelled_opening_oustanding_cheques = $this->financial_report_model->get_month_cancelled_opening_outstanding_cheques($office_ids, $funder_id, $reporting_month, $project_ids, $office_bank_ids, 'to_date');
     
       $office_ids = array_unique($office_ids); // Find out why office_ids come in duplicates
       
-      $opening_bank_balance = $this->opening_cash_balance($office_ids, $reporting_month, $project_ids, $office_bank_ids)['bank'];
-    //   log_message('error', json_encode($opening_bank_balance));
-    //   log_message('error', json_encode($opening_bank_balance));
+      $opening_bank_balance = $this->opening_cash_balance($office_ids, $funder_id, $reporting_month, $project_ids, $office_bank_ids)['bank'];
 
-     $bank_to_bank_contra_receipts = $this->bank_to_bank_contra_receipts($office_bank_ids, $reporting_month);
-     $bank_to_bank_contra_contributions = $this->bank_to_bank_contra_contributions($reporting_month, $office_bank_ids);
+     $bank_to_bank_contra_receipts = $this->bank_to_bank_contra_receipts($office_bank_ids,$funder_id, $funder_id, $reporting_month);
+     $bank_to_bank_contra_contributions = $this->bank_to_bank_contra_contributions($reporting_month,$funder_id, $office_bank_ids);
 
-     $cash_transactions_to_date = $this->cash_transactions_to_date($office_ids, $reporting_month, $project_ids, $office_bank_ids,0,$retrieve_only_max_approved); 
+     $cash_transactions_to_date = $this->cash_transactions_to_date($office_ids,$funder_id, $reporting_month, $project_ids, $office_bank_ids,0,$retrieve_only_max_approved); 
 
       $bank_income_to_date = isset($cash_transactions_to_date['bank']['income']) ? $cash_transactions_to_date['bank']['income'] : 0; 
       $bank_expenses_to_date = isset($cash_transactions_to_date['bank']['expense']) ? $cash_transactions_to_date['bank']['expense'] : 0; 
  
       $computed_cash_at_bank = $opening_bank_balance + $bank_income_to_date - $bank_expenses_to_date;
     
-    //   log_message('error', json_encode(['computed_cash_at_bank' => $computed_cash_at_bank, 'opening_bank_balance' => $opening_bank_balance, 'bank_income_to_date' => $bank_income_to_date, 'bank_expenses_to_date' => $bank_expenses_to_date]));
-
       if($bank_to_bank_contra_receipts > 0){
         $computed_cash_at_bank = $computed_cash_at_bank + array_sum($bank_to_bank_contra_receipts);
       }
@@ -309,11 +289,9 @@ class Financial_report_model extends MY_Model
         $computed_cash_at_bank = $computed_cash_at_bank - array_sum($bank_to_bank_contra_contributions);
       }
 
-    //   log_message('error', json_encode($to_date_cancelled_opening_oustanding_cheques));
+    $computed_cash_at_bank = $computed_cash_at_bank + $to_date_cancelled_opening_oustanding_cheques;
 
-        $computed_cash_at_bank = $computed_cash_at_bank + $to_date_cancelled_opening_oustanding_cheques;
-
-      return $computed_cash_at_bank; // $opening_bank_balance + $bank_income_to_date - $bank_expenses_to_date;
+      return $computed_cash_at_bank; 
     }
 
     /**
@@ -322,11 +300,11 @@ class Financial_report_model extends MY_Model
      * Updated by Nicodemus Karisa
      */
 
-    function opening_cash_balance($office_ids, $reporting_month, array $project_ids = [], $office_bank_ids = [], $office_cash_id = 0)
+    function opening_cash_balance($office_ids, $funder_id,  $reporting_month, array $project_ids = [], $office_bank_ids = [], $office_cash_id = 0)
     {
         // log_message('error', json_encode($reporting_month));
 
-        $bank_balance_amount = $this->financial_report_model->system_opening_bank_balance($office_ids, $project_ids, $office_bank_ids);
+        $bank_balance_amount = $this->financial_report_model->system_opening_bank_balance($office_ids, $funder_id, $project_ids, $office_bank_ids);
 
         //  log_message('error', json_encode($bank_balance_amount));
 
@@ -342,7 +320,7 @@ class Financial_report_model extends MY_Model
 
         if ($this->financial_report_model->check_if_financial_report_is_submitted($office_ids, $reporting_month) == true) {
 
-            $sum_of_bounced_cheques = $this->financial_report_model->get_total_sum_of_bounced_opening_cheques($office_ids, $reporting_month, $project_ids, $office_bank_ids);
+            $sum_of_bounced_cheques = $this->financial_report_model->get_total_sum_of_bounced_opening_cheques($office_ids, $funder_id, $reporting_month, $project_ids, $office_bank_ids);
 
             // log_message('error', json_encode($sum_of_bounced_cheques));
 
@@ -360,7 +338,7 @@ class Financial_report_model extends MY_Model
         
         $balance =  [
         'bank' => $bank_balance_amount,
-        'cash' => $this->financial_report_model->system_opening_cash_balance($office_ids, $project_ids, $office_bank_ids, $office_cash_id)
+        'cash' => $this->financial_report_model->system_opening_cash_balance($office_ids, $funder_id, $project_ids, $office_bank_ids, $office_cash_id)
         ];
 
         // log_message('error', json_encode($balance));
@@ -375,28 +353,30 @@ class Financial_report_model extends MY_Model
      * Updated by Nicodemus Karisa
      */
 
-    public function get_total_sum_of_bounced_opening_cheques($office_ids, $reporting_month, $project_ids = [], $office_bank_ids = [])
+    public function get_total_sum_of_bounced_opening_cheques($office_ids, $funder_id, $reporting_month, $project_ids = [], $office_bank_ids = [])
     {
         
         $reporting_month = date('Y-m-t', strtotime($reporting_month));
 
         if(sizeof($office_bank_ids) == 0){
-            $office_bank=$this->get_office_banks($office_ids);
+            $office_bank=$this->get_office_banks($office_ids, $funder_id);
             $office_bank_ids=array_column($office_bank,'office_bank_id');
         }
         $this->read_db->select_sum('opening_outstanding_cheque_amount');
         $this->read_db->select(array('opening_outstanding_cheque_cleared_date'));
         $this->read_db->where_in('fk_office_bank_id', $office_bank_ids);
-        $this->read_db->where(array('opening_outstanding_cheque_bounced_flag' => 1));
+        $this->read_db->where(array('opening_outstanding_cheque_bounced_flag' => 1, 'office_bank.fk_funder_id' => $funder_id));
         $this->read_db->where(array('opening_outstanding_cheque_cleared_date' => $reporting_month));
+        $this->read_db->join('office_bank','office_bank.office_bank_id=opening_outstanding_cheque.fk_office_bank_id');
         $this->read_db->group_by(array('fk_office_bank_id','opening_outstanding_cheque_cleared_date')); // Modified by Nicodemus Karisa on 13th May 2022
         return $this->read_db->get('opening_outstanding_cheque')->result_array();
     }
-    function get_office_banks($office_ids, $project_ids = [], $office_bank_ids = []){
+    function get_office_banks($office_ids, $funder_id, $project_ids = [], $office_bank_ids = []){
 
 
         $this->read_db->select(array('DISTINCT(office_bank_id)', 'office_bank_name'));
         $this->read_db->where_in('fk_office_id' ,$office_ids);
+        $this->read_db->where(array('office_bank.fk_funder_id' => $funder_id));
         $this->read_db->join('office_bank', 'office_bank.office_bank_id=office_bank_project_allocation.fk_office_bank_id');
 
         if (!empty($office_bank_ids)) {
@@ -443,7 +423,7 @@ class Financial_report_model extends MY_Model
      * Awaiting documentation
      */
 
-    function get_month_cancelled_opening_outstanding_cheques($office_ids, $start_date_of_month, $project_ids, $office_bank_ids, $aggregation_period = 'current_month'){ // Options: current_month, past_months, to_date
+    function get_month_cancelled_opening_outstanding_cheques($office_ids, $funder_id, $start_date_of_month, $project_ids, $office_bank_ids, $aggregation_period = 'current_month'){ // Options: current_month, past_months, to_date
 
         $sum_cancelled_cheques = 0;
         
@@ -451,7 +431,7 @@ class Financial_report_model extends MY_Model
         $end_month_date = date('Y-m-t', strtotime($start_date_of_month));
         
         $this->read_db->select_sum('opening_outstanding_cheque_amount');
-        $this->read_db->where_in('fk_office_id', $office_ids);
+        $this->read_db->where_in('system_opening_balance.fk_office_id', $office_ids);
         $this->read_db->where(['opening_outstanding_cheque_bounced_flag' => 1]);
 
         $condition = ['opening_outstanding_cheque_cleared_date' =>  $end_month_date];
@@ -475,6 +455,8 @@ class Financial_report_model extends MY_Model
         $this->read_db->group_by(array('fk_system_opening_balance_id'));
         $this->read_db->join('system_opening_balance','system_opening_balance.system_opening_balance_id=opening_outstanding_cheque.fk_system_opening_balance_id');
         $this->read_db->join('office','office.office_id=system_opening_balance.fk_office_id');
+        $this->read_db->join('office_bank','office_bank.fk_office_id=office.office_id');
+        $this->read_db->where(array('office_bank.fk_funder_id' => $funder_id));
         $opening_outstanding_cheque_obj = $this->read_db->get('opening_outstanding_cheque');
 
         if($opening_outstanding_cheque_obj->num_rows() > 0){
@@ -945,13 +927,14 @@ class Financial_report_model extends MY_Model
     }
 
 
-    function system_opening_bank_balance($office_ids, array $project_ids = [], $office_bank_ids = [])
+    function system_opening_bank_balance(array $office_ids,int $funder_id, array $project_ids = [], $office_bank_ids = [])
     {
 
         $this->read_db->select_sum('opening_bank_balance_amount');
         $this->read_db->join('system_opening_balance', 'system_opening_balance.system_opening_balance_id=opening_bank_balance.fk_system_opening_balance_id');
         $this->read_db->join('office_bank', 'office_bank.office_bank_id=opening_bank_balance.fk_office_bank_id');
         $this->read_db->where_in('system_opening_balance.fk_office_id', $office_ids);
+        $this->read_db->where(['office_bank.fk_funder_id' => $funder_id]);
 
         if (!empty($project_ids)) {
             $this->read_db->where_in('project_allocation.fk_project_id', $project_ids);
@@ -972,7 +955,7 @@ class Financial_report_model extends MY_Model
         return $opening_bank_balance;
     }
 
-    function system_opening_cash_balance($office_ids, $project_ids = [], $office_bank_ids = [], $office_cash_id = 0)
+    function system_opening_cash_balance($office_ids, $funder_id, $project_ids = [], $office_bank_ids = [], $office_cash_id = 0)
     {
         $balance = 0;
 
@@ -985,7 +968,12 @@ class Financial_report_model extends MY_Model
             $this->read_db->join('office_bank', 'office_bank.office_bank_id=opening_cash_balance.fk_office_bank_id');
             $this->read_db->join('office_bank_project_allocation', 'office_bank_project_allocation.fk_office_bank_id=office_bank.office_bank_id');
             $this->read_db->join('project_allocation', 'project_allocation.project_allocation_id=office_bank_project_allocation.fk_project_allocation_id');
+        }else{
+            $this->read_db->join('office', 'office.office_id=system_opening_balance.fk_office_id');
+            $this->read_db->join('office_bank', 'office_bank.fk_office_id=office.office_id');
         }
+
+        $this->read_db->where(['office_bank.fk_funder_id' => $funder_id]);
 
         if (!empty($office_bank_ids)) {
             $this->read_db->where_in('opening_cash_balance.fk_office_bank_id', $office_bank_ids);
@@ -1018,7 +1006,7 @@ class Financial_report_model extends MY_Model
         }
     }
 
-    function cash_transactions_to_date($office_ids, $reporting_month, $project_ids = [], $office_bank_ids = [], $office_cash_id = 0, $retrieve_only_max_approved = true)
+    function cash_transactions_to_date($office_ids, $funder_id, $reporting_month, $project_ids = [], $office_bank_ids = [], $office_cash_id = 0, $retrieve_only_max_approved = true)
     {
         $cash_transactions_to_date = [];
     
@@ -1034,7 +1022,7 @@ class Financial_report_model extends MY_Model
             $this->read_db->where(array('fk_office_cash_id' => $office_cash_id));
         }
 
-        $this->read_db->where(array('voucher_month <=' => $start_of_reporting_month));
+        $this->read_db->where(array('voucher_month <=' => $start_of_reporting_month, 'fk_funder_id' => $funder_id));
 
         $this->read_db->select(array('voucher_type_account_code','voucher_type_effect_code', 'amount'));
         $this->read_db->select_sum('amount');

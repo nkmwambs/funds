@@ -291,10 +291,6 @@ extract($result);
         var active_request_url = "<?= base_url(); ?>Voucher/get_count_of_unvouched_request/" + office;
         var url = "<?= base_url(); ?>Voucher/check_voucher_type_affects_bank/" + office + "/" + funder_id + "/" + voucher_type_id;
 
-        // var extra_data = {
-        //     'office_id': office
-        // };
-
         if (!voucher_type_id) {
             hide_buttons();
             $(".account_fields").closest('span').addClass('hidden');
@@ -316,6 +312,7 @@ extract($result);
             var response_office_bank = response_objects['office_banks'];
             var response_is_transfer_contra = response_objects['is_transfer_contra'];
             var response_is_bank_payment = response_objects['is_bank_payment'];
+            let response_is_cash_payment = response_objects['is_cash_payment'];
             var response_is_voucher_type_requires_cheque_referencing = response_objects['voucher_type_requires_cheque_referencing'];
 
 
@@ -324,6 +321,13 @@ extract($result);
                 badges.html(response);
 
             })
+
+            if(response_is_cash_payment) {
+                $("#bank").closest('span').addClass('hidden');
+                $("#bank option:first").attr('selected', 'selected');
+
+                add_options_to_cash_select(response_office_cash);
+            }
 
 
             if (response_office_cash.length > 0) {
@@ -335,7 +339,6 @@ extract($result);
                 }
 
             } else if (response_office_bank.length > 0) {
-
                 add_options_to_bank_select(response_office_bank);
 
                 if (response_office_cash.length > 0) {
@@ -359,7 +362,6 @@ extract($result);
 
             } else {
                 $("#cheque_number").closest('span').addClass('hidden');
-                //$("#cheque_number").prop("selectedIndex", 0);
                 $("#cheque_number option:first").attr('selected', 'selected');
             }
 
@@ -495,13 +497,14 @@ extract($result);
         populate_cash_transfer_recipient($(this));
 
         office_id = $('#office').val();
+        funder_id = $('#funder').val();
         office_cash_id = $(this).val();
 
         if ($(this).val() != '') {
             $('#unapproved_and_approved_vouchers_cash_balance').closest('span').removeClass('hidden');
             $('#approved_vouchers_cash_balance').closest('span').removeClass('hidden');
             //compute_cash_balance(office_id, office_cash_id);
-            compute_cash_balance(office_id, office_cash_id);
+            compute_cash_balance(office_id, funder_id, office_cash_id);
 
         } else {
             $('#unapproved_and_approved_vouchers_cash_balance').closest('span').addClass('hidden');
@@ -522,76 +525,55 @@ extract($result);
 
     // }
 
-    $("#bank").on("change", function(ev) {
+    // $("#bank").on("change", function(ev) {
 
-        //alert('Yes Here');
-        const office = $('#office').val();
-        const bank = $(this).val();
-
-
-        // Toogle Disable when a bank account is selected or not
-        if ($(this).val() != '') {
-            // alert('Hellooo');
-            $("#cheque_number").removeAttr('disabled');
-            $("#cheque_number").removeAttr('readonly');
-
-            $("#bank_balance").closest('span').removeClass('hidden');
-
-            compute_bank_balance(office, bank);
-
-        } else {
-            $("#cheque_number").val("");
-            $("#cheque_number").prop('disabled', 'disabled');
-            $("#bank_balance").closest('span').addClass('hidden');
-        }
+    //     //alert('Yes Here');
+    //     const office = $('#office').val();
+    //     const bank = $("#bank").val();
+    //     const funder = $('#funder').val();
 
 
-        // Populate transfer account list
-        if (!$("#cash_recipient_account").closest('span').hasClass('hidden')) {
-            populate_cash_transfer_recipient($(this));
-        }
+    //     // Toogle Disable when a bank account is selected or not
+    //     if ($(this).val() != '') {
+    //         // alert('Hellooo');
+    //         $("#cheque_number").removeAttr('disabled');
+    //         $("#cheque_number").removeAttr('readonly');
 
-        if ($("#cheque_number").is('input') && $("#cheque_number").val() != "") {
-            checkIfEftREfIsValid(office, bank, $("#cheque_number").val());
-        } else {
-            check_cheque_validity();
-        }
+    //         $("#bank_balance").closest('span').removeClass('hidden');
 
-    });
+    //         compute_bank_balance(office, funder, bank);
 
-    // function compute_bank_balance(office_id, office_bank_id) {
-    //     const url = '<?= base_url(); ?>voucher/compute_bank_balance';
-    //     const transaction_date = $('#transaction_date').val();
-    //     const data = {
-    //         office_id,
-    //         office_bank_id,
-    //         transaction_date
-    //     };
+    //     } else {
+    //         $("#cheque_number").val("");
+    //         $("#cheque_number").prop('disabled', 'disabled');
+    //         $("#bank_balance").closest('span').addClass('hidden');
+    //     }
 
-    //     $.post(url, data, function(bank_balance) {
-    //         $('#bank_balance').val(bank_balance);
-    //     })
-    // }
 
-    // function compute_cash_balance(office_id, office_cash_id){
-    //     const url = '<?= base_url(); ?>voucher/compute_cash_balance';
-    //     const transaction_date = $('#transaction_date').val();
-    //     const data = {office_id, office_cash_id, transaction_date};
+    //     // Populate transfer account list
+    //     if (!$("#cash_recipient_account").closest('span').hasClass('hidden')) {
+    //         populate_cash_transfer_recipient($(this));
+    //     }
 
-    //     $.post(url, data, function (cash_balance) {
-    //         $('#cash_balance').val(cash_balance);
-    //     })
-    // }
+    //     if ($("#cheque_number").is('input') && $("#cheque_number").val() != "") {
+    //         checkIfEftREfIsValid(office, bank, $("#cheque_number").val());
+    //     } else {
+    //         check_cheque_validity();
+    //     }
 
-    function compute_bank_balance(office_id, office_bank_id) {
+    // });
+
+    function compute_bank_balance(office_id, funder_id, office_bank_id) {
         const url = '<?= base_url(); ?>voucher/compute_bank_balance';
         const transaction_date = $('#transaction_date').val();
         const data = {
             office_id,
+            funder_id,
             office_bank_id,
             transaction_date
         };
 
+        // console.log(data)
 
         $.post(url, data, function(bank_balance_response) {
 
@@ -611,11 +593,13 @@ extract($result);
         })
     }
 
-    function compute_cash_balance(office_id, office_cash_id) {
+    function compute_cash_balance(office_id, funder_id, office_cash_id) {
         const url = '<?= base_url(); ?>voucher/compute_cash_balance';
+        // const funder_id = $("#funder").val();
         const transaction_date = $('#transaction_date').val();
         const data = {
             office_id,
+            funder_id,
             office_cash_id,
             transaction_date
         };
@@ -632,7 +616,7 @@ extract($result);
 
             $('#unapproved_and_approved_vouchers_cash_balance').val(put_commas_on_cash_amount.join('.'));
             $('#approved_vouchers_cash_balance').val(cash_balance.approved_vouchers_journal_bal);
-            console.log(JSON.parse(response));
+            // console.log(JSON.parse(response));
         })
     }
 
@@ -669,7 +653,7 @@ extract($result);
 
                 var obj = JSON.parse(response);
 
-                console.log(obj);
+                // console.log(obj);
 
                 $.each(obj, function(i, elem) {
 
@@ -926,11 +910,69 @@ extract($result);
         populate_select(response_office_cash, $("#cash_account"), 'Select a cash account');
     }
 
+    $("#funder").on('change', function() {
+        const funder_id = $(this).val();
+        let office_elem = $("#office")
+
+        resetVoucher(false);
+
+        $.ajax({
+            url: "<?= base_url();?>/voucher/user_transacting_offices",
+            type: "POST",
+            success: function(response) {
+                let options = "<option value=''><?= get_phrase('select_office'); ?></option>"
+                $.each(response, function(index, elem){
+                    options += "<option value='"+elem.office_id+"'>"+elem.office_name+"</option>"
+                })
+                office_elem.html(options)
+            }
+        });
+   });
+
+    function load_bank_dependant_data(elem){
+
+            // alert('Yes Here');
+            const office = $('#office').val();
+            const bank = $("#bank").val();
+            const funder = $('#funder').val();
+
+
+            // Toogle Disable when a bank account is selected or not
+            if ($(elem).val() != '') {
+                // alert('Hellooo');
+                $("#cheque_number").removeAttr('disabled');
+                $("#cheque_number").removeAttr('readonly');
+
+                $("#bank_balance").closest('span').removeClass('hidden');
+
+                compute_bank_balance(office, funder, bank);
+
+            } else {
+                $("#cheque_number").val("");
+                $("#cheque_number").prop('disabled', 'disabled');
+                $("#bank_balance").closest('span').addClass('hidden');
+            }
+
+
+            // Populate transfer account list
+            if (!$("#cash_recipient_account").closest('span').hasClass('hidden')) {
+                populate_cash_transfer_recipient($(this));
+            }
+
+            if ($("#cheque_number").is('input') && $("#cheque_number").val() != "") {
+                checkIfEftREfIsValid(office, bank, $("#cheque_number").val());
+            } else {
+                check_cheque_validity();
+            }
+
+    }
+
     function get_bank_cash_information(OfficeBankSelect) {
 
         let office_id = $("#office").val();
+        let funder_id = $("#funder").val();
         let voucher_type_id = $("#voucher_type").val(); //$(voucherTypeSelect).val(); // Can be expense, income, cash_contra or bank_contra
-        let url = "<?= base_url(); ?>Voucher/check_voucher_type_affects_bank/" + office_id + "/" + voucher_type_id;
+        let url = "<?= base_url(); ?>Voucher/check_voucher_type_affects_bank/" + office_id + "/"+ funder_id + "/" + voucher_type_id;
         let office_bank_id = $(OfficeBankSelect).val(); //!$("#bank").attr('disabled') ? $("#bank").val() : 0;
         let transaction_date = $('#transaction_date').val();
         let extra_data = {
@@ -941,13 +983,11 @@ extract($result);
             return false;
         }
 
+        load_bank_dependant_data(OfficeBankSelect)
+
         $.post(url, extra_data, function(response) {
 
             var response_objects = JSON.parse(response);
-            // var response_office_cash = response_objects['office_cash'];
-            // var response_office_bank = response_objects['office_banks'];
-            // var response_is_transfer_contra = response_objects['is_transfer_contra'];
-            // var response_is_bank_payment = response_objects['is_bank_payment'];
             var response_is_voucher_type_requires_cheque_referencing = response_objects['voucher_type_requires_cheque_referencing'];
     
             //Get the active cheque of an office;
@@ -976,43 +1016,6 @@ extract($result);
                     }
                 });
             }
-
-            // if (response_office_cash.length > 0) {
-            //     add_options_to_cash_select(response_office_cash);
-
-            //     if (response_office_bank.length > 0) add_options_to_bank_select(response_office_bank, true);
-
-            // } else if (response_office_bank.length > 0) {
-            //     add_options_to_bank_select(response_office_bank);
-
-            //     if (response_office_cash.length > 0) add_options_to_cash_select(response_office_cash, true);
-
-            // }
-
-            // if (response_is_transfer_contra) {
-            //     $("#cash_recipient_account").closest('span').removeClass('hidden');
-            //     $("#cash_recipient_account").removeAttr('disabled');
-            //     $("#cash_recipient_account").html('');
-            // } else {
-            //     $("#cash_recipient_account").closest('span').addClass('hidden');
-            // }
-
-            // if (response_is_bank_payment) {
-            //     $("#cheque_number").closest('span').removeClass('hidden');
-
-            //     change_voucher_number_field_to_eft_number(response_is_voucher_type_requires_cheque_referencing);
-
-            // } else {
-            //     $("#cheque_number").closest('span').addClass('hidden');
-            // }
-
-            // if (voucher_type_id) {
-            //     //update_request_details_count_on_badge();
-            //     $(".btn-insert").show();
-            //     $(".btn-retrieve-request").show();
-            // } else {
-            //     hide_buttons();
-            // }
 
         });
 
@@ -1146,7 +1149,6 @@ extract($result);
     }
 
     function reset_voucher_identity_fields(clear_office_selector) {
-        //console.log($("#office").val());
         if (clear_office_selector) {
             $("#transaction_date").val("");
             $("#voucher_number").val('');
@@ -1322,25 +1324,30 @@ extract($result);
 
     function updateAccountAndAllocationField() {
         var office_id = $("#office").val();
+        let funder_id = $("#funder").val();
 
         var transaction_date = $("#transaction_date").val();
 
         var voucher_type_id = $("#voucher_type").val(); // Can be expense, income, cash_contra or bank_contra
         var office_bank_id = !$("#bank").attr('disabled') ? $("#bank").val() : 0;
-        var extra_data = {
-            'office_bank_id': office_bank_id
+        var data = {
+            office_id,
+            funder_id,
+            office_bank_id,
+            voucher_type_id,
+            transaction_date
         };
-        var url = "<?= base_url(); ?>Voucher/get_voucher_accounts_and_allocation/" + office_id + "/" + voucher_type_id + "/" + transaction_date + "/" + office_bank_id;
+        var url = "<?= base_url(); ?>Voucher/get_voucher_accounts_and_allocation";
 
         $.ajax({
-            url: url,
-            type: "POST",
-            data: extra_data,
+            url,
+            method: "POST",
+            data,
             beforeSend: function() {
 
             },
             success: function(response) {
-                //console.log(response);
+              
                 var account_select_option = "<option value=''>Select an account</option>";
 
                 var allocation_select_option = "<option value=''>Select an allocation code</option>";
@@ -1354,8 +1361,6 @@ extract($result);
 
                 //alert(response);
                 insertRow(response_is_contra);
-
-                //console.log(toggle_accounts_by_allocation);
 
                 //if(toggle_accounts_by_allocation){
                 create_allocation_select_options(response_allocation);
@@ -1527,7 +1532,6 @@ extract($result);
             'transaction_date': transaction_date,
             'office_bank_id': office_bank_id
         };
-        //console.log(data);
 
         if (toggle_accounts_by_allocation) {
 
@@ -1697,7 +1701,7 @@ extract($result);
 
         $.post(limit_check_url, limit_data, function(limit_exceeded) {
 
-            console.log(limit_exceeded);
+            // console.log(limit_exceeded);
 
             if (limit_exceeded == 1) {
                 alert('<?= get_phrase('cash_limit_exceeded', "You have exceeded the bank or cash balance"); ?>');
@@ -1740,7 +1744,7 @@ extract($result);
                                 $.get(ur, function(re_mf) {
 
 
-                                    console.log(re_mf)
+                                    // console.log(re_mf)
                                 });
 
                                 //Delete Duplicate CJ in a month
@@ -1750,7 +1754,7 @@ extract($result);
                                 $.get(ur, function(re_cj) {
 
 
-                                    console.log(re_cj)
+                                    // console.log(re_cj)
                                 });
 
 

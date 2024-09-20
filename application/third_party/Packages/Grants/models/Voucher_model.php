@@ -92,10 +92,10 @@ class Voucher_model extends MY_Model
      * @param Int $office_bank_id - Cash type e.g. bank 1
      * @return float - True if reconciliation has been created else false
      */
-    public function unapproved_month_vouchers(int $office_id, string $reporting_month, string $effect_code, string $account_code, int $cash_type_id = 0, int $office_bank_id = 0): float
+    public function unapproved_month_vouchers(int $office_id, int $funder_id, string $reporting_month, string $effect_code, string $account_code, int $cash_type_id = 0, int $office_bank_id = 0): float
     {
 
-        $max_approval_status_ids = $this->general_model->get_max_approval_status_id('voucher');
+        $max_approval_status_ids = $this->general_model->get_max_approval_status_id('voucher', [$office_id]);
 
         $start_of_reporting_month = date('Y-m-01', strtotime($reporting_month));
 
@@ -107,7 +107,7 @@ class Voucher_model extends MY_Model
         $this->read_db->join('voucher_type_account', 'voucher_type_account.voucher_type_account_id=voucher_type.fk_voucher_type_account_id');
         $this->read_db->join('voucher_type_effect', 'voucher_type_effect.voucher_type_effect_id=voucher_type.fk_voucher_type_effect_id');
         $this->read_db->where(['voucher.fk_office_id' => $office_id, 'voucher.voucher_date >=' => $start_of_reporting_month, 'voucher.voucher_date <=' => $end_of_reporting_month, 'voucher.fk_status_id!=' => $max_approval_status_ids[0]]);
-        $this->read_db->where(['voucher_type_effect_code' => $effect_code, 'voucher_type_account_code' => $account_code]);
+        $this->read_db->where(['voucher_type_effect_code' => $effect_code, 'voucher_type_account_code' => $account_code, 'voucher.fk_funder_id' => $funder_id]);
 
         if ($cash_type_id != 0) {
             $this->read_db->where(['fk_office_cash_id' => $cash_type_id]);
