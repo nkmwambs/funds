@@ -850,7 +850,7 @@ extract($result);
         
         $.get(url, function (resp) {
             if(!resp){
-                alert('<?=get_phrase('missing_period_budget','You have a missing or unapproved budget review for the period')?>');
+                alert('<?=get_phrase('missing_period_budget','You have a missing or unapproved budget review for the period for the office and funder')?>');
             }
             check = resp;
         })
@@ -860,7 +860,8 @@ extract($result);
     $("#office").on('change', function() {
         let clear_office_selector = false;
         const office_id = $(this).val()
-        const url = '<?=base_url();?>budget/check_office_period_budget_exists/' + office_id
+        const funder_id = $('#funder').val()
+        const url = '<?=base_url();?>budget/check_office_period_budget_exists/' + office_id + '/' + funder_id
         const elem = $(this)
 
         if(office_id == ""){
@@ -870,7 +871,7 @@ extract($result);
 
         $.get(url, function (resp) {
             if(!resp){
-                alert('<?=get_phrase('missing_period_budget','You have a missing or unapproved budget review for the period')?>');
+                alert('<?=get_phrase('missing_period_budget','You have a missing or unapproved budget review for the period for the office and funder')?>');
             }else{
                 resetVoucher(clear_office_selector);
 

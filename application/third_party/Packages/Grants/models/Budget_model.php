@@ -1285,7 +1285,7 @@ private function list_budget_month_order($budget_id, $custom_year_start_date = "
   //   return $budget;
   // }
 
-  function get_a_budget_by_office_current_transaction_date($office_id){
+  function get_a_budget_by_office_current_transaction_date($office_id, $funder_id){
 
     $this->load->model('voucher_model');
     $this->load->model('financial_report_model');
@@ -1316,7 +1316,7 @@ private function list_budget_month_order($budget_id, $custom_year_start_date = "
     if($custom_financial_year['custom_financial_year_id'] != NULL && !$custom_financial_year['custom_financial_year_is_active']){
       $this->read_db->where(array('fk_custom_financial_year_id' => $custom_financial_year_id));
     }
-    $this->read_db->where(array('fk_office_id' => $office_id,'budget_year' => $fy,'fk_budget_tag_id' => $mfr_budget_tag_id));
+    $this->read_db->where(array('fk_office_id' => $office_id, 'budget.fk_funder_id' => $funder_id,'budget_year' => $fy,'fk_budget_tag_id' => $mfr_budget_tag_id));
     $this->read_db->where_in('budget.fk_status_id', $max_budget_approval_ids);
 
     $budget_obj = $this->read_db->get('budget');

@@ -719,9 +719,9 @@ class Budget extends MY_Controller
 
   }
 
-  function check_office_period_budget_exists($office_id){
+  function check_office_period_budget_exists($office_id, $funder_id){
     
-    $budget = $this->budget_model->get_a_budget_by_office_current_transaction_date($office_id);
+    $budget = $this->budget_model->get_a_budget_by_office_current_transaction_date($office_id, $funder_id);
 
     // log_message('error', json_encode($budget));
     
