@@ -1824,30 +1824,6 @@ class Voucher extends MY_Controller
     }
   }
 
-
-  // function get_office_bank_id_to_post($office_id)
-  // {
-
-  //   $office_bank_id =  $this->input->post('fk_office_bank_id') == null ? 0 : $this->input->post('fk_office_bank_id');
-
-  //   if ($office_bank_id == 0) {
-  //     // Get id of active office bank
-  //     $office_bank_id = $this->office_bank_model->get_active_office_banks($office_id)[0]['office_bank_id'];
-  //   }
-
-  //   return $office_bank_id;
-  // }
-
-  // function get_remaining_unused_cheque_leaves($office_bank_id)
-  // {
-
-  //   $unused_cheque_leaves = $this->cheque_book_model->get_remaining_unused_cheque_leaves($office_bank_id);
-
-  //   return json_encode($unused_cheque_leaves);
-  // }
-
-
-
   /**
    * check_cheque_validity(): gets a json string with chq numbers
    * @author Karisa & Onduso 
@@ -2043,7 +2019,8 @@ class Voucher extends MY_Controller
     $header['voucher_date'] = $voucher_date;
     $header['voucher_number'] = $voucher_number; //$this->input->post('voucher_number');
     $header['fk_voucher_type_id'] = $this->input->post('fk_voucher_type_id');
-    $header['fk_office_bank_id'] = $this->get_office_bank_id_to_post($office_id);
+    // log_message('error', json_encode($this->get_office_bank_id_to_post($office_id)));
+    $header['fk_office_bank_id'] = $this->get_office_bank_id_to_post($office_id,  $funder_id);
     $header['fk_office_cash_id'] = $this->input->post('fk_office_cash_id') == null ?: $this->input->post('fk_office_cash_id');
     // log_message('error', json_encode($this->input->post('fk_office_cash_id')));
     $header['voucher_cheque_number'] = $this->input->post('voucher_cheque_number') == null ? 0 : $this->input->post('voucher_cheque_number');
@@ -2150,14 +2127,14 @@ class Voucher extends MY_Controller
     }
   }
 
-  function get_office_bank_id_to_post($office_id)
+  function get_office_bank_id_to_post($office_id, $funder_id)
   {
 
     $office_bank_id =  $this->input->post('fk_office_bank_id') == null ? 0 : $this->input->post('fk_office_bank_id');
 
     if ($office_bank_id == 0) {
       // Get id of active office bank
-      $office_bank_id = $this->office_bank_model->get_active_office_banks($office_id)[0]['office_bank_id'];
+      $office_bank_id = $this->office_bank_model->get_active_office_banks($office_id, $funder_id)[0]['office_bank_id'];
     }
 
     return $office_bank_id;
