@@ -764,7 +764,7 @@ class Office_bank_model extends MY_Model
 
     $this->load->model('financial_report_model');
 
-    $office_banks = $this->financial_report_model->get_office_banks($office_ids, $project_ids, $office_bank_ids);
+    $office_banks = $this->financial_report_model->get_office_banks($office_ids, [], $project_ids, $office_bank_ids);
   
     // log_message('error', json_encode($office_banks));
     $office_banks_array = [];

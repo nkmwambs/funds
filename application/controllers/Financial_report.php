@@ -64,8 +64,8 @@ class Financial_report extends MY_Controller
 
     $report = array();
 
-    $month_cancelled_opening_oustanding_cheques = $this->financial_report_model->get_month_cancelled_opening_outstanding_cheques($office_ids, $start_date_of_month, $project_ids, $office_bank_ids);
-    $past_months_cancelled_opening_oustanding_cheques = $this->financial_report_model->get_month_cancelled_opening_outstanding_cheques($office_ids, $start_date_of_month, $project_ids, $office_bank_ids, 'past_months');
+    $month_cancelled_opening_oustanding_cheques = $this->financial_report_model->get_month_cancelled_opening_outstanding_cheques($office_ids, $start_date_of_month, [], $project_ids, $office_bank_ids);
+    $past_months_cancelled_opening_oustanding_cheques = $this->financial_report_model->get_month_cancelled_opening_outstanding_cheques($office_ids, $start_date_of_month, [], $project_ids, $office_bank_ids, 'past_months');
 
     $itr = 0;
 
@@ -138,79 +138,6 @@ class Financial_report extends MY_Controller
 
     return $proof_of_cash;
   }
-  /**
-   * todo - Find out why office_ids come in duplicates
-   */
-
-  // function _compute_cash_at_bank($office_ids, $reporting_month, $project_ids = [], $office_bank_ids = [])
-  // {
-  //   // log_message('error', json_encode($office_bank_ids));
-
-  //   $office_ids = array_unique($office_ids); // Find out why office_ids come in duplicates
-
-  //   $opening_bank_balance = $this->_opening_cash_balance($office_ids, $reporting_month, $project_ids, $office_bank_ids)['bank'];
-
-  //   $bank_income_to_date = $this->financial_report_model->cash_transactions_to_date($office_ids, $reporting_month, 'income', 'bank', $project_ids, $office_bank_ids); //$this->_cash_income_to_date($office_ids,$reporting_month);
-  //   $bank_expenses_to_date = $this->financial_report_model->cash_transactions_to_date($office_ids, $reporting_month, 'expense', 'bank', $project_ids, $office_bank_ids); //$this->_cash_expense_to_date($office_ids,$reporting_month);
-
-  //   return $opening_bank_balance + $bank_income_to_date - $bank_expenses_to_date;
-  // }
-
-
-  // function _opening_cash_balance($office_ids, $reporting_month, array $project_ids = [], $office_bank_ids = [])
-  // {
-  //   // log_message('error', json_encode($reporting_month));
-
-  //   $bank_balance_amount = $this->financial_report_model->system_opening_bank_balance($office_ids, $project_ids, $office_bank_ids);
-
-  //   //  log_message('error', json_encode($bank_balance_amount));
-
-  //   if(!isset($_POST['reporting_month'])){
-  //     $report = $this->financial_report_information($this->id);
-  //     extract($report);
-  //     $report_month=$reporting_month;
-  //   }
-  //   else{
-  //     $report_month=$_POST['reporting_month'];
-  //   }
-  //   //If the mfr has been submitted. Adjust the child support fund by taking away exact amount of bounced opening chqs This code was added during enhancement for cancelling opening outstanding chqs
-
-  //   if ($this->financial_report_model->check_if_financial_report_is_submitted($office_ids, $reporting_month) == true) {
-
-
-  //     $sum_of_bounced_cheques = $this->financial_report_model->get_total_sum_of_bounced_opening_cheques($office_ids, $project_ids, $office_bank_ids);
-
-  //     // log_message('error', json_encode($sum_of_bounced_cheques));
-
-  //     $mfr_report_month= date('Y-m-t', strtotime($reporting_month));
-
-  //     $total_amount_bounced = isset($sum_of_bounced_cheques[0]['opening_outstanding_cheque_amount']) ? $sum_of_bounced_cheques[0]['opening_outstanding_cheque_amount'] : 0;
-  //     $bounced_date = isset($sum_of_bounced_cheques[0]['opening_outstanding_cheque_cleared_date']) ? $sum_of_bounced_cheques[0]['opening_outstanding_cheque_cleared_date'] : 0;
-
-  //     if($total_amount_bounced>0 &&  $bounced_date > $mfr_report_month ){
-  //       $bank_balance_amount=$bank_balance_amount-$total_amount_bounced;
-  //     }
-  //   }
-
-  //   // log_message('error', json_encode($bank_balance_amount));
-
-  //   return [
-  //     'bank' => $bank_balance_amount,
-  //     'cash' => $this->financial_report_model->system_opening_cash_balance($office_ids, $project_ids, $office_bank_ids)
-  //   ];
-
-  // }
-
-  // function _compute_cash_at_hand($office_ids, $reporting_month, $project_ids = [], $office_bank_ids = [])
-  // {
-  //   //return 15000;
-  //   $opening_cash_balance = $this->financial_report_model->opening_cash_balance($office_ids, $reporting_month, $project_ids, $office_bank_ids)['cash'];
-  //   $cash_income_to_date = $this->financial_report_model->cash_transactions_to_date($office_ids, $reporting_month, 'income', 'cash', $project_ids, $office_bank_ids); //$this->_cash_income_to_date($office_ids,$reporting_month,'bank_contra','cash');
-  //   $cash_expenses_to_date = $this->financial_report_model->cash_transactions_to_date($office_ids, $reporting_month, 'expense', 'cash', $project_ids, $office_bank_ids); //$this->_cash_expense_to_date($office_ids,$reporting_month,'cash_contra','cash');
-
-  //   //return $cash_expenses_to_date;
-  //   return $opening_cash_balance + $cash_income_to_date - $cash_expenses_to_date;
-  // }
 
   private function financial_ratios()
   {
