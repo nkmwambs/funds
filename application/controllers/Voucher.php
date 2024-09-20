@@ -258,6 +258,7 @@ class Voucher extends MY_Controller
     $header['office_name'] = $office->office_code . ' - ' . $office->office_name;
     $header['office_code'] = $office->office_code;
     $header['office_id'] = $raw_result[0]['fk_office_id'];
+    $header['funder_id'] = $raw_result[0]['fk_funder_id'];
     $header['voucher_id'] = $raw_result[0]['voucher_id'];
     $header['voucher_date'] = $raw_result[0]['voucher_date'];
     $header['voucher_number'] = $raw_result[0]['voucher_number'];
@@ -436,6 +437,7 @@ class Voucher extends MY_Controller
   {
 
     $is_expense_more_than_income = false;
+    $funder_id = $voucher_data['funder_id'];
 
     //Get the selected voucher total_cost_amount
     $selected_voucher_income_amount = $this->voucher_model->selected_voucher_income_total_cost(hash_id($this->id, 'decode'));
@@ -447,14 +449,14 @@ class Voucher extends MY_Controller
     if ($voucher_data['effect_type_code'] == 'income' && $voucher_data['account_type_code'] == 'bank') {
 
       //Income Totals
-      $unapproved_income_voucher_total = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $voucher_data['voucher_date'], 'income', 'bank', $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
+      $unapproved_income_voucher_total = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $funder_id, $voucher_data['voucher_date'], 'income', 'bank', $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
 
-      $full_bank_income_voucher_total = $this->financial_report_model->compute_cash_at_bank([$voucher_data['office_id']], $voucher_data['voucher_date'], [], [$voucher_data['fk_office_bank_id']], true);
+      $full_bank_income_voucher_total = $this->financial_report_model->compute_cash_at_bank([$voucher_data['office_id']], $funder_id, $voucher_data['voucher_date'], [], [$voucher_data['fk_office_bank_id']], true);
 
       $total_income_bal = $unapproved_income_voucher_total + $full_bank_income_voucher_total;
 
       //Get all expenses
-      $total_current_expense_voucher = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $voucher_data['voucher_date'], 'expense', 'bank', $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
+      $total_current_expense_voucher = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $funder_id, $voucher_data['voucher_date'], 'expense', 'bank', $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
 
       //Less amount of the selected voucher
       $total_income_bal -= $selected_voucher_income_amount;
@@ -466,10 +468,10 @@ class Voucher extends MY_Controller
     } else if ($voucher_data['effect_type_code'] == 'bank_contra' && $voucher_data['account_type_code'] == 'bank') {
 
       //Full cash vouchers
-      $full_cash_income_voucher_total = $this->financial_report_model->compute_cash_at_hand([$voucher_data['office_id']], $voucher_data['voucher_date'], [], [], $voucher_data['fk_office_cash_id'], true);
+      $full_cash_income_voucher_total = $this->financial_report_model->compute_cash_at_hand([$voucher_data['office_id']], $funder_id, $voucher_data['voucher_date'], [], [], $voucher_data['fk_office_cash_id'], true);
 
       //Petty Cash Deposit
-      $total_petty_cash_deposit_voucher = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $voucher_data['voucher_date'], 'bank_contra', 'bank', $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
+      $total_petty_cash_deposit_voucher = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $funder_id, $voucher_data['voucher_date'], 'bank_contra', 'bank', $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
 
       if (($total_petty_cash_deposit_voucher < 0 && $full_cash_income_voucher_total >= 0) || ($total_petty_cash_deposit_voucher >= 0 && $total_petty_cash_deposit_voucher >= 0)) {
         $total_petty_cash = $full_cash_income_voucher_total + $total_petty_cash_deposit_voucher;
@@ -478,7 +480,7 @@ class Voucher extends MY_Controller
       }
 
       //Get all expenses
-      $total_current_expense_voucher = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $voucher_data['voucher_date'], 'expense', 'cash', $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
+      $total_current_expense_voucher = $this->voucher_model->unapproved_month_vouchers($voucher_data['office_id'], $funder_id, $voucher_data['voucher_date'], 'expense', 'cash', $voucher_data['fk_office_cash_id'], $voucher_data['fk_office_bank_id']);
 
       //Check if total expenses > total cash
       $total_petty_cash -= $selected_voucher_income_amount;
@@ -531,7 +533,6 @@ class Voucher extends MY_Controller
       $status_data = $this->general_model->action_button_data('voucher', $voucher['account_system_id']);
   
       $create_mass_vouchers[$voucher_id]['is_voucher_cancellable'] = $this->is_voucher_cancellable($status_data, $voucher['header']);
-      // $create_mass_vouchers[$voucher_id]['check_expenses_against_income']=$this->check_pending_expenses_exceeds_total_income($voucher['header']);
       $create_mass_vouchers[$voucher_id]['status_data'] = $status_data;
     }
 
@@ -568,18 +569,9 @@ class Voucher extends MY_Controller
     } elseif ($this->action == 'multi_form_add') {
       $result = [];
 
-      // Get transacting offices
-      // $hierarchy_offices = $this->session->hierarchy_offices;
-      // $transacting_offices = array_filter($hierarchy_offices, function ($office) {
-      //     if(!$office['office_is_readonly']){
-      //         return $office;  
-      //     }
-      // });
       $this->load->model('funder_model');
       $user_funders = $this->funder_model->get_user_funders();
       
-      // log_message('error', json_encode($transacting_offices));
-      // $result['transacting_offices'] = $transacting_offices;
       $result['office_has_request'] = $this->request_model->get_office_request_count() == 0 ? false : true;
       $result['user_funder'] = $user_funders;
 
@@ -591,7 +583,9 @@ class Voucher extends MY_Controller
       return $result;
     } elseif ($this->action == 'list') {
       $columns = $this->columns();
-      array_shift($columns);
+      // array_shift($columns);
+      unset($columns[array_search('voucher_id',$columns)]);
+      unset($columns[array_search('voucher.fk_status_id',$columns)]);
       $result['columns'] = $columns;
       $result['has_details_table'] = false;
       $result['has_details_listing'] = true;
@@ -600,7 +594,7 @@ class Voucher extends MY_Controller
 
       return $result;
     } else {
-      return parent::result($id = '');
+      return parent::result($id);
     }
   }
 

@@ -1373,7 +1373,7 @@ class Voucher_model extends MY_Model
 
     // log_message('error', json_encode($id));
     $this->read_db->select(array('voucher_id',
-      'fk_office_id', 'fk_office_cash_id', 'voucher_date', 'voucher_number', 'fk_office_bank_id', 'fk_voucher_type_id', 'voucher_cheque_number',
+      'fk_office_id','fk_funder_id', 'fk_office_cash_id', 'voucher_date', 'voucher_number', 'fk_office_bank_id', 'fk_voucher_type_id', 'voucher_cheque_number',
       'voucher_vendor', 'voucher_reversal_from', 'voucher_reversal_to', 'voucher_vendor_address', 'voucher_description', 'voucher_created_date',
       'voucher.fk_status_id as status_id', 'voucher_created_by', 'voucher_is_reversed', 'voucher_type_effect_code', 'voucher_type_account_code'
     ));
@@ -1390,36 +1390,6 @@ class Voucher_model extends MY_Model
 
     return $this->read_db->get_where('voucher', array('voucher_id' => $id))->result_array();
   }
-// /**
-//  * get_transaction_voucher
-//  * @param int $voucher_type_id
-//  * @return Array
-//  * @access public
-//  * @author: Livingstone Onduso
-//  * @Date: 24/9/2022
-//  */
-//     public function get_transaction_voucher(string $id): array
-//     {
-
-//         // log_message('error', json_encode($id));
-//         $this->read_db->select(array('voucher_id',
-//             'fk_office_id', 'fk_office_cash_id', 'voucher_date', 'voucher_number', 'fk_office_bank_id', 'fk_voucher_type_id', 'voucher_cheque_number',
-//             'voucher_vendor', 'voucher_reversal_from', 'voucher_reversal_to', 'voucher_vendor_address', 'voucher_description', 'voucher_created_date',
-//             'voucher.fk_status_id as status_id', 'voucher_created_by', 'voucher_is_reversed', 'voucher_type_effect_code', 'voucher_type_account_code',
-//         ));
-
-//         $this->read_db->select(array(
-//             'voucher_detail_quantity', 'voucher_detail_description', 'voucher_detail_unit_cost', 'voucher_detail_total_cost',
-//             'fk_expense_account_id', 'fk_income_account_id', 'fk_contra_account_id', 'fk_project_allocation_id',
-//         ));
-
-//         $this->read_db->join('voucher_detail', 'voucher_detail.fk_voucher_id=voucher.voucher_id');
-//         $this->read_db->join('voucher_type', 'voucher_type.voucher_type_id=voucher.fk_voucher_type_id');
-//         $this->read_db->join('voucher_type_account', 'voucher_type_account.voucher_type_account_id=voucher_type.fk_voucher_type_account_id');
-//         $this->read_db->join('voucher_type_effect', 'voucher_type_effect.voucher_type_effect_id=voucher_type.fk_voucher_type_effect_id');
-
-//         return $this->read_db->get_where('voucher', array('voucher_id' => $id))->result_array();
-//     }
 
     /**
      * get_voucher_type
