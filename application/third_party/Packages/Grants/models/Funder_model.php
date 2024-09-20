@@ -123,7 +123,9 @@ class Funder_model extends MY_Model
       $lookup_values = parent::lookup_values();
 
       if (!$this->session->system_admin) {
-        $hierarchy_offices = array_column($this->session->hierarchy_offices, 'office_id');
+        $user_offices = $this->user_model->direct_user_offices($this->session->user_id, $this->session->context_definition['context_definition_name']);
+
+        $hierarchy_offices = array_column($user_offices, 'office_id');
         $this->read_db->select(array('office_id', 'office_name'));
         $this->read_db->where_in('office_id', $hierarchy_offices);
         $lookup_values['office'] = $this->read_db->get('office')->result_array();
