@@ -1690,3 +1690,10 @@ if(!function_exists('transacting_offices')){
       return $transacting_offices;
     }
 }
+
+if(!function_exists('setJsonResponse')){
+    function setJsonResponse ($arr){
+        $CI = &get_instance();
+        return $CI->output->set_content_type('application/json')->set_output(json_encode($arr));
+    }
+}

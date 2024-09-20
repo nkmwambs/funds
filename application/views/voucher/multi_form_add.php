@@ -43,31 +43,38 @@ extract($result);
                     </div>
                 </div>
 
-                <div class='form-group'>
-                    <label class='control-label col-xs-1'><?= get_phrase('office'); ?></label>
-                    <div class='col-xs-2'>
-                        <select class='form-control required' id='office' name='fk_office_id'>
-                            <option value=""><?= get_phrase('select_office'); ?></option>
-                            <?php
-                            foreach ($transacting_offices as $office) {
-                                if (!$office['office_is_active']) continue;
-                            ?>
-                                <option value="<?= $office['office_id']; ?>"><?= $office['office_name']; ?></option>
+                <div class = "form-group">
+                    <label class='control-label col-xs-2'><?= get_phrase('funder'); ?></label>
+                    <div class='col-xs-3'>
+                        <select class='form-control required' id='funder' name='fk_funder_id'>
+                            <option value=""><?= get_phrase('select_funder'); ?></option>
+                            <?php foreach ($user_funder as $funder) { ?>
+                                <option value="<?= $funder['funder_id']; ?>"><?= $funder['funder_name']; ?></option>
                             <?php } ?>
                         </select>
                     </div>
 
-                    <label class='control-label col-xs-1 date-field'><?= get_phrase('transaction_date'); ?></label>
+                    <label class='control-label col-xs-2'><?= get_phrase('office'); ?></label>
+                    <div class='col-xs-3'>
+                        <select class='form-control required' id='office' name='fk_office_id'>
+                            <option value=""><?= get_phrase('select_office'); ?></option>
+                            
+                        </select>
+                    </div>
+                </div>
+
+                <div class='form-group'>
+                    <label class='control-label col-xs-2 date-field'><?= get_phrase('transaction_date'); ?></label>
                     <div class='col-xs-2 date-field'>
                         <input id="transaction_date" type='text' name='voucher_date' onkeydown="return false" class='form-control required' autocomplete="off" />
                     </div>
 
-                    <label class='control-label col-xs-1'><?= get_phrase('voucher_number'); ?></label>
+                    <label class='control-label col-xs-2'><?= get_phrase('voucher_number'); ?></label>
                     <div class='col-xs-2'>
                         <input type='text' onkeydown="return false" class='form-control required' name='voucher_number' id="voucher_number" autocomplete="off"/>
                     </div>
 
-                    <label class='control-label col-xs-1'><?= get_phrase('voucher_type'); ?></label>
+                    <label class='control-label col-xs-2'><?= get_phrase('voucher_type'); ?></label>
                     <div class='col-xs-2'>
                         <select class='form-control required' disabled="disabled" name='fk_voucher_type_id' id='voucher_type'>
                             <option value=""><?= get_phrase('select_voucher_type'); ?></option>
@@ -287,9 +294,10 @@ extract($result);
         remove_voucher_detail_rows();
 
         var office = $('#office').val();
+        let funder_id = $('#funder').val()
         var voucher_type_id = $(this).val();
         var active_request_url = "<?= base_url(); ?>Voucher/get_count_of_unvouched_request/" + office;
-        var url = "<?= base_url(); ?>Voucher/check_voucher_type_affects_bank/" + office + "/" + voucher_type_id;
+        var url = "<?= base_url(); ?>Voucher/check_voucher_type_affects_bank/" + office + "/" + funder_id + "/" + voucher_type_id;
 
         // var extra_data = {
         //     'office_id': office

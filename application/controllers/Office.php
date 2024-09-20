@@ -437,6 +437,7 @@ class Office extends MY_Controller
 
     echo $message;
   }
+
   static function get_menu_list()
   {
   }

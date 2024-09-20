@@ -575,11 +575,13 @@ class Voucher extends MY_Controller
       //         return $office;  
       //     }
       // });
-
-      $transacting_offices = $this->user_model->direct_user_offices($this->session->user_id, $this->session->context_definition['context_definition_name']);
-      log_message('error', json_encode($transacting_offices));
-      $result['transacting_offices'] = $transacting_offices;
+      $this->load->model('funder_model');
+      $user_funders = $this->funder_model->get_user_funders();
+      
+      // log_message('error', json_encode($transacting_offices));
+      // $result['transacting_offices'] = $transacting_offices;
       $result['office_has_request'] = $this->request_model->get_office_request_count() == 0 ? false : true;
+      $result['user_funder'] = $user_funders;
 
       return $result;
     } elseif ($this->action == 'edit') {
@@ -601,6 +603,12 @@ class Voucher extends MY_Controller
       return parent::result($id = '');
     }
   }
+
+  function user_transacting_offices(){
+    $transacting_offices = $this->user_model->direct_user_offices($this->session->user_id, $this->session->context_definition['context_definition_name']);
+    return setJsonResponse($transacting_offices);
+  }
+
   /**
    * Enhancement
    *get_project_allocation_income_account(): Returns  income account numeric value
@@ -1116,7 +1124,7 @@ class Voucher extends MY_Controller
   }
   
 
-  function check_voucher_type_affects_bank($office_id, $voucher_type_id = 0)
+  function check_voucher_type_affects_bank($office_id, $funder_id, $voucher_type_id = 0)
   {
 
     $response['is_transfer_contra'] = false;
@@ -1133,8 +1141,8 @@ class Voucher extends MY_Controller
 
     $office_accounting_system = $this->office_account_system($office_id);
 
-    if (count($this->office_bank_model->get_active_office_banks($office_id)) > 1 && $voucher_type_account == 'cash') {
-      $response['office_banks'] = $this->get_office_banks($office_id);
+    if (count($this->office_bank_model->get_active_office_banks($office_id, $funder_id)) > 1 && $voucher_type_account == 'cash') {
+      $response['office_banks'] = $this->get_office_banks($office_id, $funder_id);
     }
 
     if ($voucher_type_account == 'cash' || $voucher_type_effect == 'bank_contra' || $voucher_type_effect == 'cash_to_cash_contra') {
@@ -1145,7 +1153,7 @@ class Voucher extends MY_Controller
     }
 
     if ($voucher_type_account == 'bank' || $voucher_type_effect == 'cash_contra' || $voucher_type_effect == 'bank_to_bank_contra') {
-      $response['office_banks'] = $this->get_office_banks($office_id);
+      $response['office_banks'] = $this->get_office_banks($office_id, $funder_id);
     }
 
     if ($voucher_type_effect == 'bank_to_bank_contra' || $voucher_type_effect == 'cash_to_cash_contra') {
@@ -1375,10 +1383,8 @@ class Voucher extends MY_Controller
     echo json_encode($expense_or_income_accounts_array);
   }
 
-  function get_office_banks($office_id)
+  function get_office_banks(int $office_id, int $funder_id)
   {
-
-    //$office_id = $this->input->post('office_id');
 
     //echo $office_id;
     $this->read_db->select(array('DISTINCT(office_bank_id) as item_id', 'bank_name', 'office_bank_name as item_name', 'office_bank_account_number '));
@@ -1390,7 +1396,7 @@ class Voucher extends MY_Controller
 
     $office_banks = $this->read_db->get_where(
       'office_bank',
-      array('fk_office_id' => $office_id, 'office_bank_is_active' => 1)
+      array('fk_office_id' => $office_id, 'office_bank_is_active' => 1, 'office_bank.fk_funder_id' => $funder_id)
     )->result_object();
 
     return $office_banks;

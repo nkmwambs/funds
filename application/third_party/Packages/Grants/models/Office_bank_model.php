@@ -564,13 +564,14 @@ class Office_bank_model extends MY_Model
    * @return array
    * @param int $office_id
    */
-    function get_active_office_banks(int $office_id){
+    function get_active_office_banks(int $office_id, int $funder_id){
       $this->read_db->select(array('office_bank_id','office_bank_name'));
-      $this->read_db->where(['fk_office_id'=>$office_id,'office_bank_is_active'=>1]);
-      //$this->read_db->where(['office_bank_id <>'=>$recipient_bank_id,'office_bank_is_active'=>1]);
+      $this->read_db->where(['fk_office_id'=>$office_id,'office_bank_is_active'=>1, 'fk_funder_id' => $funder_id]);
+      $office_banks_obj = $this->read_db->get('office_bank');
 
-      
-      $office_banks = $this->read_db->get('office_bank')->result_array();
+      if($office_banks_obj->num_rows() > 0){
+        $office_banks = $office_banks_obj->result_array();
+      }
 
       return $office_banks;
     }
