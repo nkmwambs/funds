@@ -103,7 +103,8 @@ class Funder_model extends MY_Model
       
       $transacting_offices = $this->user_model->direct_user_offices($this->session->user_id, $this->session->context_definition['context_definition_name']);
 
-      $this->read_db->select(array('funder_id', 'funder_name'));
+      $this->read_db->select('DISTINCT(funder_id)');
+      $this->read_db->select(array('funder_name'));
       // $this->read_db->where(array('fk_account_system_id' => $this->session->user_account_system_id));
       $this->read_db->where_in('project_allocation.fk_office_id', array_column($transacting_offices, 'office_id'));
       $this->read_db->join('project','project.fk_funder_id=funder.funder_id');

@@ -554,6 +554,13 @@ class Voucher extends MY_Controller
     echo $printable_vouchers;
   }
 
+  function page_name(): string{
+    if($this->action == 'edit'){
+      return 'multi_form_add';
+    }else{
+      return $this->action;
+    }
+  }
 
   function result($id = '')
   {
@@ -580,11 +587,16 @@ class Voucher extends MY_Controller
       
       $result['office_has_request'] = $this->request_model->get_office_request_count() == 0 ? false : true;
       $result['user_funder'] = $user_funders;
-
+      $result['voucher_header_info'] = [];
       return $result;
     } elseif ($this->action == 'edit') {
-
+      
       $result = [];
+      $this->load->model('funder_model');
+      $user_funders = $this->funder_model->get_user_funders();
+      
+      $result['user_funder'] = $user_funders;
+      $result['office_has_request'] = $this->request_model->get_office_request_count() == 0 ? false : true;
       $result['voucher_header_info'] = $this->voucher_model->get_voucher_header_to_edit(hash_id($this->id, 'decode'));
       return $result;
     } elseif ($this->action == 'list') {
@@ -648,12 +660,23 @@ class Voucher extends MY_Controller
    * @param Int $voucher_id - voucher id
    * @return void
    */
-  function get_voucher_detail_to_edit(int $voucher_id, string $voucher_type_effect_name)
+  function get_voucher_detail_to_edit(int $voucher_id)
   {
 
-    $voucher_detail_records_to_edit = $this->voucher_model->get_voucher_detail_to_edit($voucher_id, $voucher_type_effect_name);
 
-    echo json_encode($voucher_detail_records_to_edit);
+    $voucher_accounts_and_allocation = $this->_get_voucher_accounts_and_allocation();
+
+    $voucher_detail_records_to_edit = $this->voucher_model->get_voucher_detail_to_edit($voucher_id);
+
+    $response = [
+      'accounts_and_allocation' => $voucher_accounts_and_allocation,
+      'voucher_details' => $voucher_detail_records_to_edit
+    ];
+
+    // log_message('error', json_encode($voucher_detail_records_to_edit));
+
+    // echo json_encode($voucher_detail_records_to_edit);
+    return setJsonResponse($response);
   }
 
 
@@ -808,63 +831,39 @@ class Voucher extends MY_Controller
 
   public function show_list()
   {
-
-    //$max_voucher_status_id = $this->general_model->get_max_approval_status_id('voucher');
-
     $draw = intval($this->input->post('draw'));
     $vouchers = $this->get_vouchers();
     $count_vouchers = $this->count_vouchers();
-
     $month_cancelled_vouchers = isset($vouchers[0]) ? $this->voucher_model->month_cancelled_vouchers($vouchers[0]['voucher_date']) : date("Y-m-d");
-
-    //log_message("error",json_encode($month_cancelled_vouchers));
-
     $result = [];
-
     $cnt = 0;
     $status_data = $this->general_model->action_button_data($this->controller);
 
     extract($status_data);
-
+    
     $initial_record_status_id = $this->grants_model->initial_item_status('voucher');
-
-  
     $status_info=$this->general_model->action_button_data($this->controller)['item_status'];
-
     $logged_user_permission=$this->user_model->check_role_has_permissions(ucfirst($this->controller), 'create');
 
     foreach ($vouchers as $voucher) {
 
       $voucher_id = array_shift($voucher);
-
       $status_id=$voucher['fk_status_id'];
-
       $voucher_status = array_pop($voucher);
-
       //Disable the edit if status is not Ready to Submit or Reinstate
-
-     // $status_name=$status_info[$voucher_status]['status_button_label'];
-
       $status_approval_direction=$status_info[$voucher_status]['status_approval_direction'];
-
-
       $disable_edit='disabled';
 
       if( $voucher['voucher_is_reversed']!=1 && $logged_user_permission && ($initial_record_status_id== $status_id || $status_approval_direction==-1)){
         $disable_edit='';
       }
 
-
-
       //Construct the View and Edit <a> tag
       $voucher['voucher_track_number'] = '<a class="btn btn-default" href="' . base_url() . $this->controller . '/view/' . hash_id($voucher_id) . '"><i class="fa fa-eye" style="font-size:18px;color:black"></i> ' .' ['.$voucher['voucher_track_number'].']'. '</a>';
-
-      
       $voucher['voucher_number'] = '<a   class="btn btn-success edit  ' . $disable_edit . '"  href="' . base_url() . $this->controller . '/edit/' . hash_id($voucher_id) . '"><i class="fa fa-pencil" style="font-size:18px;color:white"></i> ' .' ['.$voucher['voucher_number'].']'. '</a>';
-
       $voucher['voucher_is_reversed'] = $voucher['voucher_is_reversed'] == 1 ? get_phrase('yes') :  get_phrase('no');
+      $voucher['voucher_cheque_number'] = $voucher['voucher_cheque_number'] ? $voucher['voucher_cheque_number'] : '';
       $row = array_values($voucher);
-
       $action = '';
 
       if (is_array($month_cancelled_vouchers) && !in_array($voucher_id, $month_cancelled_vouchers)) {
@@ -872,9 +871,7 @@ class Voucher extends MY_Controller
       }
 
       array_unshift($row, $action);
-
       $result[$cnt] = $row;
-
       $cnt++;
     }
 
@@ -1176,6 +1173,15 @@ class Voucher extends MY_Controller
 
   function get_voucher_accounts_and_allocation()
   {
+    $response = $this->_get_voucher_accounts_and_allocation();
+
+    //log_message('error',json_encode($response));
+    //echo json_encode($response);
+    return setJsonResponse($response);
+  }
+
+  private function _get_voucher_accounts_and_allocation()
+  {
 
     $post = $this->input->post();
 
@@ -1183,7 +1189,7 @@ class Voucher extends MY_Controller
     $funder_id = $post['funder_id'];
     $voucher_type_id = $post['voucher_type_id'];
     $transaction_date = $post['transaction_date'];
-    $office_bank_id = $post['office_bank_id'];
+    // $office_bank_id = $post['office_bank_id'];
 
     $response = [];
     $response['approved_requests'] = 0;
@@ -1239,7 +1245,8 @@ class Voucher extends MY_Controller
     }
 
     //log_message('error',json_encode($response));
-    echo json_encode($response);
+    //echo json_encode($response);
+    return $response;
   }
 
   function make_atleast_one_office_bank_default_if_one_missing($office_id){
@@ -1649,181 +1656,6 @@ class Voucher extends MY_Controller
 
   }
 
-
-  /**
-   *edit_voucher(): It modifies a voucher and saves it
-   *
-   * @author Livingstone Onduso: Dated 08-04-2023
-   * @access public
-   * @param Int $voucher_id - Office primary key
-   * @return void - True if reconciliation has been created else false
-   */
-
-  public function edit_voucher(int $voucher_id): void
-  {
-
-   
-
-    $this->write_db->trans_begin();
-
-    $voucher_type_effect_code = $this->voucher_type_effect_and_code($this->input->post('fk_voucher_type_id'))->voucher_type_effect_code;
-    
-    $post = $this->input->post();
-
-    $office_cash_id = 0;
-
-    $cheque_number = 0;
-
-    $fk_voucher_type_id=$post['fk_voucher_type_id'];
-    $original_voucher_type_effect_before_edit=$post['hold_voucher_type_effect_for_edit'];
-
-    //Voucher header details
-    if (isset($post['fk_office_cash_id'])) {
-      $office_cash_id = $post['fk_office_cash_id'] == null ? 0 : $post['fk_office_cash_id'];
-    }
-    if (isset($post['voucher_cheque_number'])) {
-      $cheque_number = $post['voucher_cheque_number'] == null ? 0 : $post['voucher_cheque_number'];
-    }
-    $voucher_header_data = [
-      'fk_office_id' => $post['fk_office_id'],
-      'voucher_date' => $post['voucher_date'],
-      'fk_voucher_type_id' => $fk_voucher_type_id,
-      'fk_office_bank_id' => $this->get_office_bank_id_to_post($post['fk_office_id']),
-      'fk_office_cash_id' => $office_cash_id,
-      'voucher_cheque_number' => $cheque_number,
-      'voucher_vendor' => $post['voucher_vendor'],
-      'voucher_vendor_address' => $post['voucher_vendor_address'],
-      'voucher_description' => $post['voucher_description'],
-      'voucher_last_modified_by' => $this->session->user_id
-    ];
-
-    $is_voucher_type_affects_bank=$this->voucher_type_model->is_voucher_type_affects_bank($fk_voucher_type_id);
-
-    if($is_voucher_type_affects_bank){
-
-      $voucher_header_data['voucher_cleared']=0;
-      $voucher_header_data['voucher_cleared_month']=NULL;
-    }
-
-
-    $quantity = count($post['voucher_detail_quantity']);
-
-
-    if ($quantity > 0) {
-      //Update Voucher Table
-      $this->write_db->where(['voucher_id' => $voucher_id]);
-
-      $this->write_db->update('voucher', $voucher_header_data);
-
-      $detail = [];
-
-      //Loop to update Voucher Details
-      for ($i = 0; $i <  $quantity; $i++) {
-        
-        $voucher_detail_quantity = str_replace(",", "", $this->input->post('voucher_detail_quantity')[$i]);
-
-        $voucher_detail_unit_cost = str_replace(",", "", $this->input->post('voucher_detail_unit_cost')[$i]);
-
-        $voucher_detail_total_cost = str_replace(",", "", $this->input->post('voucher_detail_total_cost')[$i]);
-
-        $detail['voucher_detail_quantity'] = $voucher_detail_quantity;
-
-        $detail['voucher_detail_description'] = $this->input->post('voucher_detail_description')[$i];
-
-        $detail['voucher_detail_unit_cost'] = $voucher_detail_unit_cost;
-
-        $detail['voucher_detail_total_cost'] = $voucher_detail_total_cost;
-        //$detail['hold_voucher_detail_id']=$this->input->post('hold_voucher_detail_id')[$i];
-
-        //$voucher_detail_id='';
-        //Update Records in Voucher Detail Table
-        // if($voucher_type==$fk_voucher_type_id){
-        //   $voucher_detail_id = $this->input->post('hold_voucher_detail_id')[$i];
-        // }
-
-
-        //Update Records in Voucher Detail Table
-        //if original_voucher_type_effect_before_edit is EMPTY it means voucher type effect didn't change since the voucher type dropdown was not toggled
-        $voucher_detail_id='';
-        if($original_voucher_type_effect_before_edit==$voucher_type_effect_code || $original_voucher_type_effect_before_edit==''){
-          $voucher_detail_id = $this->input->post('hold_voucher_detail_id')[$i];
-        }
-  
-       
-
-
-        if ($voucher_type_effect_code == 'expense') {
-
-          $detail['fk_expense_account_id'] = $this->input->post('voucher_detail_account')[$i];
-
-          $detail['fk_contra_account_id'] = 0;
-
-          $detail['fk_income_account_id'] = $this->input->post('store_income_account_id')[$i];
-
-        } elseif ($voucher_type_effect_code == 'income' || $voucher_type_effect_code == 'bank_to_bank_contra') {
-
-          $detail['fk_expense_account_id'] = 0;
-
-          $detail['fk_contra_account_id'] = 0;
-
-          $detail['fk_income_account_id'] = $this->input->post('store_income_account_id')[$i];
-        } elseif ($voucher_type_effect_code == 'bank_contra' || $voucher_type_effect_code == 'cash_contra') {
-
-          $detail['fk_expense_account_id'] = 0;
-
-          $detail['fk_contra_account_id'] = $this->input->post('voucher_detail_account')[$i];
-        }
-
-        $detail['fk_project_allocation_id'] = isset($this->input->post('fk_project_allocation_id')[$i]) ? $this->input->post('fk_project_allocation_id')[$i] : 0;
-
-        $detail['fk_request_detail_id'] =  isset($this->input->post('fk_request_detail_id')[$i]) ? $this->input->post('fk_request_detail_id')[$i] : 0;
-
-       
-
-        if ($voucher_detail_id != '') {
-
-          //update the voucher_detail table
-          $this->write_db->where(['voucher_detail_id' => $voucher_detail_id]);
-
-          $this->write_db->update('voucher_detail', $detail);
-
-
-        } else {
-          //Insert newlt added detail row
-
-          $detail['fk_voucher_id'] = $voucher_id;
-
-          $detail['voucher_detail_track_number'] = $this->grants_model->generate_item_track_number_and_name('voucher_detail')['voucher_detail_track_number'];
-
-          $detail['voucher_detail_name'] = $this->grants_model->generate_item_track_number_and_name('voucher_detail')['voucher_detail_name'];
-
-          $detail['fk_approval_id'] = $this->grants_model->insert_approval_record('voucher_detail');
-
-          $detail['fk_status_id'] = $this->grants_model->initial_item_status('voucher_detail');
-
-          // $row[] = $detail;
-
-          $this->write_db->insert('voucher_detail', $detail);
-
-        }
-      }
-
-      // This is to be used in the future as a replacement for inserting in the details
-      // $this->write_db->where(array('voucher_id' => $voucher_id));
-      // $this->write_db->update('voucher',["voucher_details" => json_encode($detail)]);
-
-      //echo json_encode($post);
-      //If No errors
-      if ($this->write_db->trans_status() === FALSE || empty($this->input->post('voucher_detail_quantity'))) {
-        $this->write_db->trans_rollback();
-        echo 0; //"Voucher Update failed"
-      } else {
-        $this->write_db->trans_commit();
-        echo 1; //"Voucher Updated successfully";
-      }
-    }
-  }
-
   /**
    * check_cheque_validity(): gets a json string with chq numbers
    * @author Karisa & Onduso 
@@ -1935,24 +1767,102 @@ class Voucher extends MY_Controller
     
   }
 
-  // private function verify_cheque_book_id_by_voucher_type_id($voucher_type_id, $voucher_cheque_number, $office_bank_id){
+  function edit_voucher($voucher_id){
+    $post = $this->input->post();
+    extract($post);
+  
+    $detail = [];
+    $row = [];
 
-  //   $cheque_book_id = NULL;
-
-  //   if($this->voucher_type_model->is_voucher_type_cheque_referenced($voucher_type_id)){
-  //     $model_cheque_book_id = $this->cheque_book_model->get_cheque_book_id_for_cheque_number($voucher_cheque_number, $office_bank_id);
-  //     if($model_cheque_book_id){
-  //       $cheque_book_id = $model_cheque_book_id;
-  //     }
-  //   }
+    $voucher_type_effect_and_account = $this->voucher_type_effect_and_code($fk_voucher_type_id);
+    $voucher_type_effect_code = $voucher_type_effect_and_account->voucher_type_effect_code;
+    $voucher_type_account_code = $voucher_type_effect_and_account->voucher_type_account_code;
     
-  //   return $cheque_book_id;
-  // }
+    $header['voucher_track_number'] = $this->grants_model->generate_item_track_number_and_name('voucher')['voucher_track_number'];
+    $header['voucher_name'] = $this->grants_model->generate_item_track_number_and_name('voucher')['voucher_name'];
+    $header['fk_office_id'] = $fk_office_id;
+    $header['fk_funder_id'] = $fk_funder_id;
+    $header['voucher_date'] = $voucher_date;
+    $header['voucher_number'] = $voucher_number;
+    $header['fk_voucher_type_id'] = $fk_voucher_type_id;
+    // $office_bank_id = $fk_office_bank_id != null ? $fk_office_bank_id: null;
+    $header['fk_office_bank_id'] = isset($fk_office_bank_id) ? $fk_office_bank_id: null; // $this->get_office_bank_id_to_post($fk_office_id,  $fk_funder_id, $office_bank_id);
+    $header['fk_office_cash_id'] = isset($fk_office_cash_id) ? $fk_office_cash_id : null;
+    $header['voucher_cheque_number'] = !isset($voucher_cheque_number) ? 0 : $voucher_cheque_number;
+    $header['fk_cheque_book_id'] = $this->voucher_type_model->is_voucher_type_cheque_referenced($fk_voucher_type_id) ? $this->cheque_book_model->get_cheque_book_id_for_cheque_number($voucher_cheque_number, $fk_office_bank_id) : NULL;
+    $header['voucher_vendor'] = $voucher_vendor;
+    $header['voucher_vendor_address'] = $voucher_vendor_address;
+    $header['voucher_description'] = $voucher_description;
+    $header['voucher_last_modified_by'] = $this->session->user_id;
+    $header['voucher_last_modified_date'] = date('Y-m-d H:i:s');
+
+    $this->write_db->trans_begin();
+    $this->write_db->where(['voucher_id' => $voucher_id]);
+    $this->write_db->update('voucher', $header);
+
+    if ($this->input->post('cash_recipient_account') !== null) {
+        $this->create_cash_recipient_account_record($voucher_id, $post);
+    }
+  
+    if (!empty($voucher_detail_quantity)) {
+        for ($i = 0; $i < sizeof($this->input->post('voucher_detail_quantity')); $i++) {
+          $quantity = str_replace(",", "", $voucher_detail_quantity[$i]);
+          $unit_cost = str_replace(",", "", $voucher_detail_unit_cost[$i]);
+          $total_cost = str_replace(",", "", $voucher_detail_total_cost[$i]);
+    
+          $detail['fk_voucher_id'] = $voucher_id;
+          $detail['voucher_detail_track_number'] = $this->grants_model->generate_item_track_number_and_name('voucher_detail')['voucher_detail_track_number'];
+          $detail['voucher_detail_name'] = $this->grants_model->generate_item_track_number_and_name('voucher_detail')['voucher_detail_name'];
+          $detail['voucher_detail_quantity'] = $quantity;
+          $detail['voucher_detail_description'] = $voucher_detail_description[$i];
+          $detail['voucher_detail_unit_cost'] = $unit_cost;
+          $detail['voucher_detail_total_cost'] = $total_cost;
+    
+          if ($voucher_type_effect_code == 'expense') {
+            $expense_account_id = $voucher_detail_account[$i];
+            $detail['fk_expense_account_id'] = $expense_account_id;
+            $detail['fk_income_account_id'] = $this->expense_account_model->get_expense_income_account_id($expense_account_id);
+            $detail['fk_contra_account_id'] = NULL;
+          } elseif ($voucher_type_effect_code == 'income' || $voucher_type_effect_code == 'bank_to_bank_contra') {
+            $detail['fk_expense_account_id'] = NULL;
+            $detail['fk_income_account_id'] = $voucher_detail_account[$i];
+            $detail['fk_contra_account_id'] = NULL;
+          } elseif ($voucher_type_effect_code == 'bank_contra' || $voucher_type_effect_code == 'cash_contra') {
+            $detail['fk_expense_account_id'] = NULL;
+            $detail['fk_income_account_id'] = NULL;
+            $detail['fk_contra_account_id'] = $voucher_detail_account[$i];
+          }elseif($voucher_type_account_code == 'cash' || $voucher_type_effect_code == 'cash_contra'){
+            $detail['fk_expense_account_id'] = NULL;
+            $detail['fk_income_account_id'] = NULL;
+            $detail['fk_contra_account_id'] = $voucher_detail_account[$i];
+          }
+           
+          $detail['fk_project_allocation_id'] = isset($fk_project_allocation_id[$i]) ? $fk_project_allocation_id[$i] : null;
+          $detail['fk_request_detail_id'] =  isset($fk_request_detail_id[$i]) ? $fk_request_detail_id[$i] : NULL;
+          $detail['fk_status_id'] = $this->grants_model->initial_item_status('voucher_detail');
+
+          $row[] = $detail;
+      }
+          $this->write_db->where(['fk_voucher_id' => $voucher_id],);
+          $this->write_db->delete('voucher_detail');
+          
+          $this->write_db->insert_batch('voucher_detail', $row);
+        }
+    
+        if ($this->write_db->trans_status() === FALSE || empty($voucher_detail_quantity)) {
+          $this->write_db->trans_rollback();
+          echo 0; //"Voucher posting failed"
+        } else {
+          $this->write_db->trans_commit();
+          echo 1; //"Voucher posted successfully";
+        }
+    
+  }
 
   function insert_new_voucher()
   {
 
-    //echo json_encode($this->input->post());exit;
+    // log_message('error', json_encode($this->input->post()));
 
     $header = [];
     $detail = [];
@@ -1960,7 +1870,8 @@ class Voucher extends MY_Controller
     $office_id = $this->input->post('fk_office_id');
     $funder_id = $this->input->post('fk_funder_id');
     $voucher_number = $this->input->post('voucher_number');
-    // $first_day_of_month = date("Y-m-01", strtotime($this->input->post('voucher_date')));
+    $office_bank_id = $this->input->post('fk_office_bank_id') != null ? $this->input->post('fk_office_bank_id') : NULL;
+    $office_cash_id = $this->input->post('fk_office_cash_id') != null ? $this->input->post('fk_office_cash_id') : NULL;
     $voucher_date = $this->input->post('voucher_date');
 
     $this->write_db->where(array('fk_office_id' => $office_id, 'voucher_number' => $voucher_number));
@@ -1971,8 +1882,6 @@ class Voucher extends MY_Controller
     }
 
     $this->write_db->trans_begin();
-
-    // $office_id = $this->input->post('fk_office_id');
 
     // Check if this is the first voucher in the month, if so create a new journal record for the month
     // This must be run before a voucher is created
@@ -2017,23 +1926,18 @@ class Voucher extends MY_Controller
     $header['fk_office_id'] = $office_id;
     $header['fk_funder_id'] = $funder_id;
     $header['voucher_date'] = $voucher_date;
-    $header['voucher_number'] = $voucher_number; //$this->input->post('voucher_number');
+    $header['voucher_number'] = $voucher_number;
     $header['fk_voucher_type_id'] = $this->input->post('fk_voucher_type_id');
-    // log_message('error', json_encode($this->get_office_bank_id_to_post($office_id)));
-    $header['fk_office_bank_id'] = $this->get_office_bank_id_to_post($office_id,  $funder_id);
-    $header['fk_office_cash_id'] = $this->input->post('fk_office_cash_id') == null ?: $this->input->post('fk_office_cash_id');
-    // log_message('error', json_encode($this->input->post('fk_office_cash_id')));
+    $header['fk_office_bank_id'] = $office_bank_id;
+    $header['fk_office_cash_id'] = $office_cash_id;
     $header['voucher_cheque_number'] = $this->input->post('voucher_cheque_number') == null ? 0 : $this->input->post('voucher_cheque_number');
     $header['fk_cheque_book_id'] = $this->voucher_type_model->is_voucher_type_cheque_referenced($header['fk_voucher_type_id']) ? $this->cheque_book_model->get_cheque_book_id_for_cheque_number($header['voucher_cheque_number'], $header['fk_office_bank_id']) : NULL;
-    // $header['fk_cheque_book_id'] = $this->verify_cheque_book_id_by_voucher_type_id($header['fk_voucher_type_id'], $header['voucher_cheque_number'], $header['fk_office_bank_id']);
     $header['voucher_vendor'] = $this->input->post('voucher_vendor');
     $header['voucher_vendor_address'] = $this->input->post('voucher_vendor_address');
     $header['voucher_description'] = $this->input->post('voucher_description');
-
     $header['voucher_created_by'] = $this->session->user_id;
     $header['voucher_created_date'] = date('Y-m-d');
     $header['voucher_last_modified_by'] = $this->session->user_id;
-
     $header['fk_approval_id'] = $this->grants_model->insert_approval_record('voucher');
     $header['fk_status_id'] = $this->grants_model->initial_item_status('voucher');
 
@@ -2127,18 +2031,19 @@ class Voucher extends MY_Controller
     }
   }
 
-  function get_office_bank_id_to_post($office_id, $funder_id)
-  {
+  // function get_office_bank_id_to_post(int $office_id, int $funder_id, ?int $office_bank_id = null)
+  // {
 
-    $office_bank_id =  $this->input->post('fk_office_bank_id') == null ? 0 : $this->input->post('fk_office_bank_id');
+  //   // $office_bank_id =  $this->input->post('fk_office_bank_id') == null ? 0 : $this->input->post('fk_office_bank_id');
+  //   $office_bank_id = NULL;
 
-    if ($office_bank_id == 0) {
-      // Get id of active office bank
-      $office_bank_id = $this->office_bank_model->get_active_office_banks($office_id, $funder_id)[0]['office_bank_id'];
-    }
+  //   if ($office_bank_id) {
+  //     // Get id of active office bank
+  //     $office_bank_id = $this->office_bank_model->get_active_office_banks($office_id, $funder_id)[0]['office_bank_id'];
+  //   }
 
-    return $office_bank_id;
-  }
+  //   return $office_bank_id;
+  // }
 
   function get_remaining_unused_cheque_leaves($office_bank_id)
   {

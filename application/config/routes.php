@@ -55,25 +55,5 @@ $route['default_controller'] = 'login';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
+$route['policy'] = 'policy';
 
-// $uri = explode('/', $_SERVER['REQUEST_URI']);
-
-// if($uri[2] && isset($uri[3])) 
-// {
-
-//     $route[strtolower($uri[2]).'/'.$uri[3]] = ucfirst($uri[2]).'/'.$uri[3];
-//     $route[strtolower($uri[2]).'/'.$uri[3].'/:any'] = ucfirst($uri[2]).'/'.$uri[3].'/$1';
-   
-// }elseif($uri[2]){
-//     $route[strtolower($uri[2])] = ucfirst($uri[2]);
-// }
-
-
-// spl_autoload_register(function($classname){
-//     // Autoload Interfaces
-
-//     if( strpos($classname,'Interface') == true ){
-//         require(FCPATH.'application/interfaces/'.$classname.'.php');
-//     }
-
-// });

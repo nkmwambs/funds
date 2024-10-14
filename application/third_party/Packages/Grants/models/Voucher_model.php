@@ -381,36 +381,53 @@ class Voucher_model extends MY_Model
     public function get_voucher_header_to_edit(int $voucher_id): array
     {
 
-        $this->read_db->select(['voucher_id', 'office_id', 'office_code', 'voucher_type_account_name', 'voucher_type_effect_name', 'voucher_type_is_cheque_referenced', 'voucher_number', 'voucher_date', 'fk_voucher_type_id', 'voucher_type_name', 'fk_office_bank_id', 'fk_office_cash_id', 'office_bank_name', 'voucher_cheque_number', 'voucher_vendor', 'voucher_vendor_address', 'voucher_description']);
+        $this->read_db->select(
+            [
+                'voucher_id', 
+                'voucher.fk_funder_id as funder_id', 
+                'funder_name', 
+                'office_id', 
+                'office_code',
+                'office_name', 
+                'voucher_type_account_name', 
+                'voucher_type_effect_name', 
+                'voucher_type_account_code', 
+                'voucher_type_effect_code', 
+                'voucher_type_is_cheque_referenced', 
+                'voucher_number', 
+                'voucher_date', 
+                'fk_voucher_type_id as voucher_type_id', 
+                'voucher_type_name', 
+                'fk_office_bank_id as office_bank_id', 
+                'fk_office_cash_id as office_cash_id', 
+                'office_bank_name', 
+                'voucher_cheque_number', 
+                'voucher_vendor', 
+                'voucher_vendor_address', 
+                'voucher_description'
+            ]);
         $this->read_db->join('office', 'office.office_id=voucher.fk_office_id');
         $this->read_db->join('voucher_type', 'voucher_type.voucher_type_id=voucher.fk_voucher_type_id');
         $this->read_db->join('voucher_type_account', 'voucher_type_account.voucher_type_account_id=voucher_type.fk_voucher_type_account_id');
         $this->read_db->join('voucher_type_effect', 'voucher_type_effect.voucher_type_effect_id=voucher_type.fk_voucher_type_effect_id');
-        $this->read_db->join('office_bank', 'office_bank.office_bank_id=voucher.fk_office_bank_id');
+        $this->read_db->join('office_bank', 'office_bank.office_bank_id=voucher.fk_office_bank_id', 'left');
+        $this->read_db->join('funder', 'funder.funder_id=voucher.fk_funder_id');
+        $this->read_db->join('office_cash', 'office_cash.office_cash_id=voucher.fk_office_cash_id','left');
+        $this->read_db->join('voucher_detail', 'voucher_detail.fk_voucher_id=voucher.voucher_id');
         $this->read_db->where(['voucher_id' => $voucher_id]);
         $voucher_to_edit = $this->read_db->get('voucher')->row_array();
 
-        //Add the recieving account id and name in the array if bank_to_bank_contra!=''
-        //  $this->read_db->select(['fk_office_bank_id','office_bank_name']);
-        //  $this->read_db->join('office_bank','office_bank.office_bank_id=cash_recipient_account.fk_office_bank_id');
-        //  $this->read_db->where(['fk_voucher_id'=>$voucher_to_edit['voucher_id']]);
-        //  $cash_recipient_account=$this->read_db->get('cash_recipient_account')->row_array();
-
-        //  if($voucher_to_edit['voucher_type_effect_name']=="Bank_to_bank_contra"){
-        //   $voucher_to_edit = array_merge($voucher_to_edit, $cash_recipient_account);
-        //  }
-
-        //Add the office cash name in the array if fk_office_cash_id!=0
-        if ($voucher_to_edit['fk_office_cash_id'] != 0) {
-
-            $this->read_db->select(['office_cash_name']);
-            $this->read_db->where(['office_cash_id' => $voucher_to_edit['fk_office_cash_id']]);
-            $office_cash_name = $this->read_db->get('office_cash')->row_array();
-
-            $voucher_to_edit = array_merge($voucher_to_edit, $office_cash_name);
-        }
-
         return $voucher_to_edit;
+    }
+
+    private function get_voucher_effect_code_by_voucher_id($voucher_id){
+        $this->read_db->select('voucher_type_effect_code');
+        $this->read_db->where(['voucher_id' => $voucher_id]);
+        $this->read_db->join('voucher_type', 'voucher_type.fk_voucher_type_effect_id=voucher_type_effect.voucher_type_effect_id');
+        $this->read_db->join('voucher', 'voucher.fk_voucher_type_id=voucher_type.voucher_type_id');
+        $voucher_type_effect_code = $this->read_db->get('voucher_type_effect')->row_array()['voucher_type_effect_code'];
+
+        return $voucher_type_effect_code;
     }
     /**
      *get_voucher_detail_to_edit(): Returns a rows of voucher details information from voucher_detail table
@@ -419,25 +436,27 @@ class Voucher_model extends MY_Model
      * @param Int $voucher_id - voucher id String voucher_effect_name
      * @return array - returns array
      */
-    public function get_voucher_detail_to_edit(int $voucher_id, string $voucher_effect_name): array
-    {
-        // log_message('error', json_encode(['voucher_id' => $voucher_id, 'voucher_effect_name' => $voucher_effect_name]));
+    public function get_voucher_detail_to_edit(int $voucher_id): array
+    {   
 
-        $this->read_db->select(['voucher_detail_id', 'voucher_detail_quantity', 'voucher_detail_unit_cost', 'voucher_detail_total_cost', 'voucher_detail_description', 'fk_project_allocation_id', 'project_name', 'fk_contra_account_id', 'project_id']);
+        $voucher_effect_code = $this->get_voucher_effect_code_by_voucher_id($voucher_id);
+        // log_message('error', json_encode($voucher_effect_name));
+
+        $this->read_db->select(['voucher_detail_id', 'voucher_detail_quantity', 'voucher_detail_unit_cost', 'voucher_detail_total_cost', 'voucher_detail_description', 'fk_project_allocation_id','project_allocation_id', 'project_name', 'project_id']);
         //Check if contra or expense. Always transaction will account_id so no need to check if income
-        if ($voucher_effect_name == 'Expense') {
+        if ($voucher_effect_code == 'expense') {
 
-            $this->read_db->select(['fk_expense_account_id', 'expense_account_name', 'expense_account.fk_income_account_id', 'income_account_name']);
+            $this->read_db->select(['fk_expense_account_id as account_id', 'expense_account_name as account_name', 'expense_account.fk_income_account_id', 'income_account_name']);
             $this->read_db->join('expense_account', 'expense_account.expense_account_id=voucher_detail.fk_expense_account_id');
             $this->read_db->join('income_account', 'income_account.income_account_id=voucher_detail.fk_income_account_id');
 
-        } elseif ($voucher_effect_name == 'Cash_contra' || $voucher_effect_name == 'Bank_contra') {
+        } elseif ($voucher_effect_code == 'cash_contra' || $voucher_effect_code == 'bank_contra') {
 
-            $this->read_db->select(['contra_account_name']);
+            $this->read_db->select(['contra_account_id as account_id','contra_account_name  as account_name']);
             $this->read_db->join('contra_account', 'contra_account.contra_account_id=voucher_detail.fk_contra_account_id');
 
-        } elseif ($voucher_effect_name == 'Income') {
-            $this->read_db->select(array('income_account_name', 'fk_income_account_id'));
+        } elseif ($voucher_effect_code == 'income') {
+            $this->read_db->select(array('income_account_name as account_name', 'fk_income_account_id as account_id'));
             $this->read_db->join('income_account', 'income_account.income_account_id=voucher_detail.fk_income_account_id');
         }
 
@@ -445,15 +464,6 @@ class Voucher_model extends MY_Model
         $this->read_db->join('project', 'project.project_id=project_allocation.fk_project_id');
         $this->read_db->where(['fk_voucher_id' => $voucher_id]);
         $voucher_detail_to_edit = $this->read_db->get('voucher_detail')->result_array();
-
-        $voucher_total_amount = 0;
-        foreach ($voucher_detail_to_edit as $voucher_detail) {
-            $voucher_total_amount += $voucher_detail['voucher_detail_total_cost'];
-        }
-
-        $amount['total_voucher_amount'] = $voucher_total_amount;
-
-        array_push($voucher_detail_to_edit, $amount);
 
         return $voucher_detail_to_edit;
 

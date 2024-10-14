@@ -153,16 +153,10 @@ class MY_Controller extends CI_Controller
   //Setting the session of master table. For view action always the master table= the controler u are in.
   //Will alwasy be null for other actions
 
-  
     if ($this->action == 'view') {
-
       $this->session->has_userdata('master_table') ? $this->session->unset_userdata('master_table') : "";
       $this->session->set_userdata('master_table', ucfirst($this->controller));
       $this->id = hash_id($this->uri->segment(3, 0), 'decode'); // Not sure what's this line does
-
-      // $this->session->has_userdata('master_table') ? $this->session->unset_userdata('master_table') : "";
-      // $this->session->set_userdata('master_table', ucfirst($this->controller));
-      // $this->id = hash_id($this->uri->segment(3, 0), 'decode'); // Not sure what's this line does
     } elseif ($this->action == 'single_form_add' && $this->uri->total_segments() == 4) {
       $this->session->has_userdata('master_table') ? $this->session->unset_userdata('master_table') : "";
       $this->session->set_userdata('master_table', $this->uri->segment(4, 0));
@@ -173,11 +167,7 @@ class MY_Controller extends CI_Controller
     }
 
     $this->id = $this->uri->segment(3, null);
-
     $this->max_status_id = $this->general_model->get_max_approval_status_id($this->controller);
-
-    
-
     $this->language_library->set_language($this->session->user_locale);
 
     if (!$this->session->user_id) {
